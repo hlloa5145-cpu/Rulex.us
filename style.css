@@ -1,103 +1,119 @@
-/* المتغيرات العامة للألوان - Rolex Theme */
+/* Rolex Theme - الشامل لكل الصفحات */
 :root {
-    --silver-bg: #f1f5f9;      /* فضي فاتح للخلفية */
-    --silver-card: #e2e8f0;    /* فضي معدني للكرتات */
+    --silver-bg: #f8fafc;      /* فضي خفيف جداً للخلفية */
+    --silver-card: #e2e8f0;    /* فضي معدني للحدود */
     --white: #ffffff;          /* أبيض ناصع */
-    --sky-blue: #0ea5e9;       /* أزرق فاتح للأزرار والبراند */
-    --dark-text: #1e293b;      /* كحلي غامق للنصوص */
-    --success-green: #10b981;  /* أخضر للشحن */
+    --sky-blue: #0ea5e9;       /* أزرق فاتح (اللون الأساسي) */
+    --dark-blue: #0369a1;      /* أزرق أغمق للروابط */
+    --dark-text: #1e293b;      /* كحلي للنصوص */
+    --success-green: #10b981;  /* أخضر للإيداع */
     --danger-red: #ef4444;     /* أحمر للسحب */
 }
 
-/* الإعدادات العامة */
+/* الإعدادات الأساسية */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
 body {
     background-color: var(--silver-bg);
     color: var(--dark-text);
-    direction: rtl; /* اتجاه الكتابة عربي */
-    padding-bottom: 80px; /* مساحة للشريط السفلي */
+    direction: rtl;
+    padding-bottom: 90px; /* مساحة للشريط السفلي */
 }
 
-/* تنسيق صفحات الدخول (Auth) */
-.auth-body {
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding-bottom: 0;
-}
-
-.auth-container {
-    background: var(--white);
-    padding: 30px;
-    border-radius: 25px;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
-    border: 1px solid var(--silver-card);
-}
-
-.logo {
-    font-size: 2.8rem;
-    font-weight: 900;
-    color: var(--sky-blue);
-    margin-bottom: 25px;
-    letter-spacing: 3px;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-}
-
-/* الهيدر في الصفحة الرئيسية */
+/* الهيدر العلوي */
 .dashboard-header {
     background: var(--white);
     padding: 25px 20px;
     border-bottom-left-radius: 30px;
     border-bottom-right-radius: 30px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     text-align: center;
 }
 
+.logo-small {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--sky-blue);
+    letter-spacing: 2px;
+}
+
+/* الكروت (Cards) */
 .balance-card {
     background: linear-gradient(135deg, var(--sky-blue), #38bdf8);
     color: var(--white);
     padding: 25px;
     border-radius: 20px;
     margin-top: 15px;
-    box-shadow: 0 8px 20px rgba(14, 165, 233, 0.2);
+    box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
 }
 
-.balance-card h2 {
-    font-size: 2.2rem;
-    margin-top: 10px;
-}
+.balance-card h2 { font-size: 2.2rem; margin-top: 8px; }
 
-/* قسم المهام (1-4-8) */
-.task-area { padding: 20px; }
-.task-card {
+/* قسم الفريق والإحالة (جديد) */
+.referral-box { padding: 20px; }
+.silver-card {
     background: var(--white);
-    padding: 25px;
+    padding: 20px;
     border-radius: 20px;
+    border: 2px dashed var(--sky-blue);
     text-align: center;
-    border: 2px solid var(--silver-card);
 }
 
-.timer {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: var(--sky-blue);
+.copy-area {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f1f5f9;
+    padding: 12px 15px;
+    border-radius: 12px;
     margin: 15px 0;
 }
 
-/* الأزرار */
+.copy-area span { font-weight: bold; color: var(--sky-blue); font-size: 1.1rem; }
+.copy-area button { 
+    background: var(--sky-blue); 
+    color: white; border: none; padding: 6px 15px; border-radius: 8px; cursor: pointer; 
+}
+
+.team-stats {
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 20px;
+    gap: 15px;
+}
+
+.stat-item {
+    background: var(--white);
+    flex: 1;
+    padding: 20px;
+    border-radius: 20px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.02);
+    border: 1px solid var(--silver-card);
+}
+
+.stat-item i { color: var(--sky-blue); font-size: 1.6rem; margin-bottom: 8px; }
+.stat-item span { display: block; font-weight: bold; font-size: 1.3rem; color: var(--dark-text); }
+
+.list-container { padding: 20px; }
+.member-card {
+    background: var(--white);
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 12px;
+    border-right: 5px solid var(--sky-blue);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+/* الأزرار العامة */
 .btn-primary, .btn-enabled {
     width: 100%;
-    padding: 14px;
+    padding: 15px;
     background: var(--sky-blue);
     color: white;
     border: none;
@@ -110,7 +126,7 @@ body {
 
 .btn-disabled {
     width: 100%;
-    padding: 14px;
+    padding: 15px;
     background: #cbd5e1;
     color: #64748b;
     border: none;
@@ -118,25 +134,7 @@ body {
     cursor: not-allowed;
 }
 
-/* باقات الاستثمار */
-.plans-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    padding: 20px;
-}
-
-.plan-card {
-    background: var(--white);
-    padding: 15px;
-    border-radius: 15px;
-    text-align: center;
-    border: 1px solid var(--silver-card);
-}
-
-.plan-card h4 { color: var(--sky-blue); margin-bottom: 5px; }
-
-/* الشريط السفلي (Bottom Nav) */
+/* الشريط السفلي */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -146,8 +144,7 @@ body {
     justify-content: space-around;
     align-items: center;
     padding: 12px 0;
-    border-top: 2px solid var(--silver-bg);
-    box-shadow: 0 -5px 15px rgba(0,0,0,0.05);
+    border-top: 1px solid var(--silver-card);
     z-index: 1000;
 }
 
@@ -166,20 +163,12 @@ body {
 .nav-actions {
     display: flex;
     gap: 8px;
-    background: var(--silver-bg);
+    background: #f1f5f9;
     padding: 6px;
     border-radius: 15px;
 }
 
-.btn-deposit { 
-    background: var(--success-green); 
-    color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold;
-}
+.btn-deposit { background: var(--success-green); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold; }
+.btn-withdraw { background: var(--danger-red); color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold; }
 
-.btn-withdraw { 
-    background: var(--danger-red); 
-    color: white; border: none; padding: 10px 18px; border-radius: 10px; font-weight: bold;
-}
-
-/* إخفاء العناصر */
 .hidden { display: none; }
