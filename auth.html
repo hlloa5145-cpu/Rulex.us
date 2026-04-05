@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLEX - تسجيل الدخول</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="auth-body">
+
+    <div class="auth-container">
+        <div class="logo">ROLEX</div>
+        
+        <div class="auth-tabs">
+            <button onclick="showTab('login')" id="login-tab" class="active">دخول</button>
+            <button onclick="showTab('register')" id="register-tab">حساب جديد</button>
+        </div>
+
+        <form id="login-form" class="auth-form">
+            <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
+            <input type="password" id="login-password" placeholder="كلمة المرور" required>
+            <button type="submit" class="btn-primary">دخول النظام</button>
+        </form>
+
+        <form id="register-form" class="auth-form hidden">
+            <input type="email" id="reg-email" placeholder="البريد الإلكتروني الجديد" required>
+            <input type="password" id="reg-password" placeholder="كلمة مرور قوية" required>
+            <input type="text" id="reg-ref" placeholder="كود الإحالة (اختياري)">
+            <p class="ref-note">عند استخدام كود إحالة ستحصل على بونص 7%</p>
+            <button type="submit" class="btn-primary">إنشاء حساب روليكس</button>
+        </form>
+
+        <div class="support-link">
+            <a href="https://t.me/Btcun1995" target="_blank">تواجه مشكلة؟ تواصل مع الدعم</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="auth.js"></script>
+</body>
+</html>
