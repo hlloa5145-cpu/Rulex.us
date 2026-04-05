@@ -3,35 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - تسجيل الدخول</title>
+    <title>ROLEX - بوابة الفخامة</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="auth-body">
 
-    <div class="auth-container">
-        <div class="logo">ROLEX</div>
-        
-        <div class="auth-tabs">
-            <button onclick="showTab('login')" id="login-tab" class="active">دخول</button>
-            <button onclick="showTab('register')" id="register-tab">حساب جديد</button>
-        </div>
+    <div class="luxury-auth-card">
+        <div class="auth-card-inner">
+            <div class="logo-area">
+                <div class="logo-crown"><i class="fa-solid fa-gem"></i></div>
+                <div class="logo-text">ROLEX</div>
+            </div>
+            
+            <div class="auth-tabs">
+                <button onclick="showTab('login')" id="login-tab" class="active">تسجيل دخول</button>
+                <button onclick="showTab('register')" id="register-tab">إنشاء حساب</button>
+            </div>
 
-        <form id="login-form" class="auth-form">
-            <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="login-password" placeholder="كلمة المرور" required>
-            <button type="submit" class="btn-primary">دخول النظام</button>
-        </form>
+            <form id="login-form" class="auth-form active-form">
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="login-password" placeholder="كلمة المرور" required>
+                </div>
+                <button type="submit" class="btn-primary">دخول النظام</button>
+            </form>
 
-        <form id="register-form" class="auth-form hidden">
-            <input type="email" id="reg-email" placeholder="البريد الإلكتروني الجديد" required>
-            <input type="password" id="reg-password" placeholder="كلمة مرور قوية" required>
-            <input type="text" id="reg-ref" placeholder="كود الإحالة (اختياري)">
-            <p class="ref-note">عند استخدام كود إحالة ستحصل على بونص 7%</p>
-            <button type="submit" class="btn-primary">إنشاء حساب روليكس</button>
-        </form>
+            <form id="register-form" class="auth-form hidden-form">
+                <div class="input-group">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email" id="reg-email" placeholder="البريد الإلكتروني" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" id="reg-password" placeholder="كلمة المرور" required>
+                </div>
+                <div class="input-group">
+                    <i class="fa-solid fa-user-tag"></i>
+                    <input type="text" id="reg-ref" placeholder="كود الإحالة (اختياري)">
+                </div>
+                <button type="submit" class="btn-primary">إنشاء الحساب الفاخر</button>
+            </form>
 
-        <div class="support-link">
-            <a href="https://t.me/Btcun1995" target="_blank">تواجه مشكلة؟ تواصل مع الدعم</a>
+            <div class="auth-footer">
+                <a href="https://t.me/Btcun1995" target="_blank">
+                    تواجه مشكلة؟ تواصل مع الدعم الفني
+                </a>
+            </div>
         </div>
     </div>
 
