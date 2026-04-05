@@ -1,41 +1,71 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - تسجيل الدخول</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body class="auth-body">
+// بيانات الربط الخاصة بمشروعك (روليكس)
+const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
+const supabaseKey = 'EyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
 
-    <div class="auth-container">
-        <div class="logo">ROLEX</div>
-        
-        <div class="auth-tabs">
-            <button onclick="showTab('login')" id="login-tab" class="active">دخول</button>
-            <button onclick="showTab('register')" id="register-tab">حساب جديد</button>
-        </div>
+// تهيئة الاتصال بقاعدة البيانات
+const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        <form id="login-form" class="auth-form">
-            <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
-            <input type="password" id="login-password" placeholder="كلمة المرور" required>
-            <button type="submit" class="btn-primary">دخول النظام</button>
-        </form>
+// وظيفة التبديل بين واجهة الدخول والتسجيل
+function showTab(type) {
+    const loginForm = document.getElementById('login-form');
+    const registerForm = document.getElementById('register-form');
+    const loginTab = document.getElementById('login-tab');
+    const registerTab = document.getElementById('register-tab');
 
-        <form id="register-form" class="auth-form hidden">
-            <input type="email" id="reg-email" placeholder="البريد الإلكتروني الجديد" required>
-            <input type="password" id="reg-password" placeholder="كلمة مرور قوية" required>
-            <input type="text" id="reg-ref" placeholder="كود الإحالة (اختياري)">
-            <p class="ref-note">عند استخدام كود إحالة ستحصل على بونص 7%</p>
-            <button type="submit" class="btn-primary">إنشاء حساب روليكس</button>
-        </form>
+    if (type === 'login') {
+        loginForm.classList.remove('hidden');
+        registerForm.classList.add('hidden');
+        loginTab.classList.add('active');
+        registerTab.classList.remove('active');
+    } else {
+        loginForm.classList.add('hidden');
+        registerForm.classList.remove('hidden');
+        loginTab.classList.remove('active');
+        registerTab.classList.add('active');
+    }
+}
 
-        <div class="support-link">
-            <a href="https://t.me/Btcun1995" target="_blank">تواجه مشكلة؟ تواصل مع الدعم</a>
-        </div>
-    </div>
+// إنشاء حساب جديد مع نظام الإحالة
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('reg-email').value;
+    const password = document.getElementById('reg-password').value;
+    const referralBy = document.getElementById('reg-ref').value;
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="auth.js"></script>
-</body>
-</html>
+    const { data, error } = await _supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+            data: { 
+                referred_by: referralBy,
+                display_name: 'Rolex User'
+            }
+        }
+    });
+
+    if (error) {
+        alert("حدث خطأ أثناء التسجيل: " + error.message);
+    } else {
+        alert("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.");
+        showTab('login');
+    }
+});
+
+// تسجيل الدخول والتوجه للصفحة الرئيسية
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+
+    const { data, error } = await _supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+    });
+
+    if (error) {
+        alert("خطأ في بيانات الدخول: " + error.message);
+    } else {
+        // تخزين التوكن في المتصفح والتوجه للرئيسية
+        window.location.href = 'index.html'; 
+    }
+});
