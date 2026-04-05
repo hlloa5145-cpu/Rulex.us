@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLEX - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="dashboard-header">
+        <div class="user-info">
+            <span id="user-email">تحميل...</span>
+            <div class="logo-small">ROLEX</div>
+        </div>
+        <div class="balance-card">
+            <p>الرصيد الإجمالي</p>
+            <h2 id="balance-display">$0.00</h2>
+        </div>
+    </header>
+
+    <section class="task-area">
+        <div class="task-card">
+            <h3><i class="fa-solid fa-clock"></i> المهمة الحالية</h3>
+            <p id="task-status">جاري التحقق من وقت المهمة...</p>
+            <div id="countdown-timer" class="timer">--:--:--</div>
+            <button id="claim-task-btn" class="btn-disabled" disabled>تنفيذ المهمة الآن</button>
+        </div>
+    </section>
+
+    <section class="investment-section">
+        <h3>باقات الاستثمار (12 يوم)</h3>
+        <div class="plans-grid" id="plans-container">
+            </div>
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
+        <div class="nav-actions">
+            <button class="btn-deposit" onclick="location.href='deposit.html'">شحن</button>
+            <button class="btn-withdraw" onclick="location.href='withdraw.html'">سحب</button>
+        </div>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
