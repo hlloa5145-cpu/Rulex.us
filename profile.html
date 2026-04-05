@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLEX - الملف الشخصي</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header class="dashboard-header">
+        <div class="logo-small">ROLEX PROFILE</div>
+        <h3 id="display-email">جاري التحميل...</h3>
+    </header>
+
+    <section class="profile-section">
+        
+        <div class="kyc-status-card silver-card">
+            <h4><i class="fa-solid fa-id-card"></i> توثيق الحساب (KYC)</h4>
+            <p id="kyc-text">الحالة: جاري الفحص...</p>
+            <div id="kyc-upload-area" class="hidden">
+                <p class="note">يرجى رفع صورة الهوية أو جواز السفر لتفعيل السحب.</p>
+                <input type="file" id="id-image" accept="image/*">
+                <button onclick="uploadKYC()" class="btn-primary">رفع الوثيقة</button>
+            </div>
+        </div>
+
+        <div class="security-card silver-card">
+            <h4><i class="fa-solid fa-shield-halved"></i> الأمان</h4>
+            <button onclick="resetPassword()" class="btn-secondary">تغيير كلمة المرور</button>
+            <button onclick="logout()" class="btn-danger">تسجيل الخروج</button>
+        </div>
+
+        <div class="help-card silver-card">
+            <h4><i class="fa-solid fa-headset"></i> الدعم الفني</h4>
+            <p>إذا واجهت أي مشكلة، تواصل معنا عبر تلغرام:</p>
+            <a href="https://t.me/Btcun1995" class="btn-telegram" target="_blank">
+                <i class="fa-brands fa-telegram"></i> @Btcun1995
+            </a>
+        </div>
+
+    </section>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
+        <div class="nav-actions">
+            <button class="btn-deposit" onclick="location.href='deposit.html'">شحن</button>
+            <button class="btn-withdraw" onclick="location.href='withdraw.html'">سحب</button>
+        </div>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>الملف</span></a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="profile.js"></script>
+</body>
+</html>
