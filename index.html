@@ -1,26 +1,125 @@
-// بيانات السوبابيس (نفسها اللي بـ auth.js)
-const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
-const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLEX - لوحة التحكم</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
 
-async function validateAccess() {
-    // جلب الجلسة الحالية من المتصفح
-    const { data: { session }, error } = await _supabase.auth.getSession();
+    <header class="dashboard-header">
+        <div class="logo-small">ROLEX</div>
+        <div class="user-info">
+            <i class="fa-solid fa-circle-user"></i>
+            <span id="user-email">جاري التحميل...</span>
+        </div>
+    </header>
 
-    if (error || !session) {
-        // إذا ما في جلسة (يعني مو مسجل دخول) بيرجعه لصفحة الأوث
-        console.log("Access Denied: No Session Found");
-        window.location.href = 'auth.html';
-    } else {
-        // إذا الأمور تمام، بيعرض إيميل المستخدم بالهيدر
-        console.log("Access Granted:", session.user.email);
-        const emailDisplay = document.getElementById('user-email');
-        if (emailDisplay) emailDisplay.innerText = session.user.email;
-        
-        // هون بتكمل استدعاء الوظائف التانية (مثل جلب الرصيد)
-        loadUserData(session.user.id);
-    }
-}
+    <main class="container">
+        <section class="balance-section">
+            <div class="balance-card">
+                <p>إجمالي الرصيد (USDT)</p>
+                <h2 id="main-balance">$0.00</h2>
+                <div class="balance-details">
+                    <span>أرباح اليوم: <b id="today-profit">$0.00</b></span>
+                </div>
+            </div>
+        </section>
 
-// تشغيل الفحص أول ما تفتح الصفحة
-validateAccess();
+        <section class="quick-actions team-stats">
+            <div class="stat-item" onclick="location.href='deposit.html'">
+                <i class="fa-solid fa-wallet" style="color: var(--success);"></i>
+                <span>شحن</span>
+            </div>
+            <div class="stat-item" onclick="location.href='withdraw.html'">
+                <i class="fa-solid fa-money-bill-transfer" style="color: var(--danger);"></i>
+                <span>سحب</span>
+            </div>
+            <div class="stat-item" onclick="location.href='team.html'">
+                <i class="fa-solid fa-users-gear"></i>
+                <span>فريقك</span>
+            </div>
+        </section>
+
+        <section class="plans-section">
+            <h3>باقات الاستثمار المتاحة</h3>
+            <div class="plans-grid">
+                <div class="plan-card silver-card">
+                    <h4>VIP 1</h4>
+                    <p>الإيداع: 10$</p>
+                    <p>الربح اليومي: 1.5$</p>
+                    <button onclick="buyPlan(1)">تفعيل الآن</button>
+                </div>
+                <div class="plan-card silver-card">
+                    <h4>VIP 2</h4>
+                    <p>الإيداع: 50$</p>
+                    <p>الربح اليومي: 8$</p>
+                    <button onclick="buyPlan(2)">تفعيل الآن</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
+        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
+        <div class="nav-actions">
+            <button class="btn-deposit" onclick="location.href='deposit.html'">شحن</button>
+            <button class="btn-withdraw" onclick="location.href='withdraw.html'">سحب</button>
+        </div>
+        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
+        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
+    </nav>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    
+    <script>
+        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // أهم وظيفة: فحص الدخول ومنع الخروج التلقائي
+        async function initDashboard() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+
+            if (error || !session) {
+                // إذا لم يجد جلسة فعالة، يطرده لصفحة الدخول
+                window.location.href = 'auth.html';
+                return;
+            }
+
+            // إذا دخل بنجاح، نعرض بياناته
+            const user = session.user;
+            document.getElementById('user-email').innerText = user.email;
+
+            // جلب رصيده من قاعدة البيانات
+            fetchUserWallet(user.id);
+        }
+
+        async function fetchUserWallet(userId) {
+            const { data, error } = await _supabase
+                .from('wallets')
+                .select('balance')
+                .eq('user_id', userId)
+                .single();
+
+            if (data) {
+                document.getElementById('main-balance').innerText = `$${data.balance.toFixed(2)}`;
+            } else {
+                // إذا كان المستخدم جديداً ولم تفتح له محفظة بعد
+                document.getElementById('main-balance').innerText = "$0.00";
+            }
+        }
+
+        function buyPlan(vipLevel) {
+            alert("سيتم توجيهك لصفحة الشحن لتفعيل VIP " + vipLevel);
+            window.location.href = 'deposit.html';
+        }
+
+        // تشغيل الفحص فوراً
+        initDashboard();
+    </script>
+</body>
+</html>
