@@ -4,58 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROLEX - شحن الرصيد</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --silver-light: #f8fafc;
+            --silver-metallic: #e2e8f0;
+            --white: #ffffff;
+            --sky-blue: #0ea5e9;
+            --dark-text: #1e293b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+
+        body { background-color: var(--silver-light); color: var(--dark-text); direction: rtl; padding-bottom: 90px; }
+
+        .dashboard-header { background: var(--white); padding: 25px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
+
+        .logo-small { font-size: 1.6rem; font-weight: 900; color: var(--sky-blue); letter-spacing: 2px; }
+
+        .network-selector { display: flex; gap: 10px; margin: 20px; }
+
+        .network-selector button {
+            flex: 1; padding: 12px;
+            border: 1px solid var(--silver-metallic);
+            background: white; border-radius: 12px; cursor: pointer;
+        }
+
+        .network-selector button.active { background: var(--sky-blue); color: white; border-color: var(--sky-blue); }
+
+        .address-box {
+            background: var(--white);
+            margin: 20px; padding: 20px;
+            border-radius: 20px; text-align: center;
+            border: 1px solid var(--silver-metallic);
+        }
+
+        .copy-area {
+            background: #f1f5f9; padding: 10px;
+            border-radius: 10px; margin: 10px 0;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .copy-area span { font-weight: bold; color: var(--sky-blue); font-size: 1.1rem; }
+
+        .copy-area button { background: var(--sky-blue); color: white; border: none; padding: 5px 10px; border-radius: 8px; }
+
+        .upload-area { background: white; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--silver-metallic); }
+
+        .upload-area input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--silver-metallic); border-radius: 8px; }
+
+        .btn-primary { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 15px; font-weight: bold; }
+
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-metallic); z-index: 1000; }
+
+        .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
+
+        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
+
+        .nav-item.active { color: var(--sky-blue); }
+    </style>
 </head>
 <body>
 
     <header class="dashboard-header">
-        <div class="logo-small">ROLEX FINANCE</div>
-        <h3>إيداع رصيد جديد</h3>
+        <div class="logo-small">ROLEX</div>
+        <h3>شحن رصيد</h3>
     </header>
 
-    <section class="deposit-section">
+    <main>
         <div class="network-selector">
-            <button onclick="showAddress('trc')" id="btn-trc" class="active">USDT (TRC20)</button>
-            <button onclick="showAddress('bep')" id="btn-bep">USDT (BEP20)</button>
+            <button class="active">USDT (TRC20)</button>
+            <button>USDT (BEP20)</button>
         </div>
 
-        <div class="address-box silver-card">
-            <p>عنوان المحفظة المخصص للإيداع:</p>
+        <div class="address-box">
+            <p>عنوان المحفظة للإيداع:</p>
             <div class="copy-area">
                 <span id="wallet-address">TA3uvkYmFmWhJ5DePkgWN8y1rVt6sxbpZB</span>
-                <button onclick="copyAddress()"><i class="fa-solid fa-copy"></i></button>
+                <button><i class="fa-solid fa-copy"></i></button>
             </div>
-            <p class="network-name" id="network-label">الشبكة: TRC20</p>
+            <p>الشبكة: TRC20</p>
         </div>
 
-        <form id="deposit-form" class="upload-area">
+        <form class="upload-area">
             <h4>إثبات التحويل</h4>
-            <input type="number" id="dep-amount" placeholder="المبلغ المودع ($)" required>
+            <input type="number" placeholder="المبلغ المودع ($)" required>
             <div class="file-input">
-                <label for="proof-file">ارفع صورة وصل التحويل (Screenshot)</label>
-                <input type="file" id="proof-file" accept="image/*" required>
+                <label>ارفع صورة وصل التحويل</label>
+                <input type="file" accept="image/*" required>
             </div>
             <button type="submit" class="btn-primary">إرسال الطلب للمراجعة</button>
         </form>
-
-        <div class="support-notice">
-            <p>هل واجهت مشكلة؟ <a href="https://t.me/Btcun1995" target="_blank">تواصل مع الدعم الفني</a></p>
-        </div>
-    </section>
+    </main>
 
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <div class="nav-actions">
-            <button class="btn-deposit active">شحن</button>
-            <button class="btn-withdraw" onclick="location.href='withdraw.html'">سحب</button>
-        </div>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
     </nav>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="deposit.js"></script>
 </body>
 </html>
