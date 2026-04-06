@@ -3,109 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - الباقات الاستثمارية</title>
+    <title>ROLEX - الاستثمار</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --main-blue: #0ea5e9; --bg-gray: #f1f5f9; --card-white: #ffffff; --text-dark: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg-gray); padding-bottom: 80px; }
-        .page-title { text-align: center; padding: 25px; font-weight: bold; color: var(--text-dark); background: white; margin-bottom: 10px; }
-        
-        .plans-container { padding: 15px; display: grid; gap: 20px; }
-        .plan-card { background: var(--card-white); border-radius: 25px; padding: 20px; position: relative; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .vip-badge { position: absolute; top: 0; left: 0; background: var(--main-blue); color: white; padding: 15px 35px; transform: rotate(-45deg) translate(-20px, -10px); font-weight: bold; font-size: 0.8rem; }
-        
-        .plan-name { text-align: center; font-size: 1.6rem; font-weight: 800; margin-bottom: 20px; color: var(--text-dark); }
-        .plan-info { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 15px; margin-bottom: 20px; }
-        .info-item { text-align: center; }
-        .info-item span { display: block; font-size: 0.8rem; color: #64748b; margin-bottom: 5px; }
-        .info-item b { font-size: 1.2rem; color: var(--main-blue); }
-        
-        .btn-activate { width: 100%; padding: 15px; background: var(--main-blue); color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; transition: 0.3s; }
-        .btn-activate:active { transform: scale(0.98); background: #0284c7; }
-
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #e2e8f0; }
-        .nav-item { color: #94a3b8; text-decoration: none; font-size: 1.3rem; }
-        .nav-item.active { color: var(--main-blue); }
+        :root { --blue: #0ea5e9; --bg: #f8fafc; }
+        body { background: var(--bg); font-family: sans-serif; padding: 20px; padding-bottom: 80px; }
+        .plan-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #e2e8f0; text-align: center; }
+        .price { font-size: 1.5rem; color: var(--blue); font-weight: bold; }
+        .btn-buy { background: var(--blue); color: white; border: none; padding: 12px 30px; border-radius: 10px; cursor: pointer; width: 100%; margin-top: 10px; font-weight: bold; }
     </style>
 </head>
 <body>
+    <h2 style="text-align: center;">خطط الاستثمار VIP</h2>
 
-    <div class="page-title">باقات روليكس الاستثمارية</div>
-
-    <div class="plans-container">
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 1</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>100$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>5$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(1, 100)">تفعيل VIP 1</button>
-        </div>
-
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 2</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>500$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>28$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(2, 500)">تفعيل VIP 2</button>
-        </div>
-
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 3</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>1,000$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>65$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(3, 1000)">تفعيل VIP 3</button>
-        </div>
-
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 4</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>5,000$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>350$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(4, 5000)">تفعيل VIP 4</button>
-        </div>
-
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 5</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>10,000$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>800$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(5, 10000)">تفعيل VIP 5</button>
-        </div>
-
-        <div class="plan-card">
-            <div class="vip-badge">VIP</div>
-            <div class="plan-name">المستوى 6</div>
-            <div class="plan-info">
-                <div class="info-item"><span>الإيداع</span><b>25,000$</b></div>
-                <div class="info-item"><span>الربح اليومي</span><b>2,200$</b></div>
-            </div>
-            <button class="btn-activate" onclick="buyPlan(6, 25000)">تفعيل VIP 6</button>
-        </div>
+    <div class="plan-card">
+        <h3>VIP 1</h3>
+        <p class="price">$200.00</p>
+        <p>الربح اليومي: $4.00 (2%)</p>
+        <button class="btn-buy" onclick="activatePlan(200)">تفعيل الخطة الآن</button>
     </div>
 
-    <nav class="bottom-nav">
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i></a>
-        <a href="invest.html" class="nav-item active"><i class="fa-solid fa-gem"></i></a>
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i></a>
-    </nav>
+    <div class="plan-card">
+        <h3>VIP 2</h3>
+        <p class="price">$500.00</p>
+        <p>الربح اليومي: $10.00 (2%)</p>
+        <button class="btn-buy" onclick="activatePlan(500)">تفعيل الخطة الآن</button>
+    </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="auth.js"></script>
     <script>
-        function buyPlan(level, price) {
-            const confirmBuy = confirm(`هل تريد تفعيل VIP ${level} بمبلغ ${price}$؟`);
-            if(confirmBuy) {
-                alert("جاري التحقق من رصيدك... يرجى التواصل مع الإدارة إذا لم يتم التفعيل تلقائياً.");
+        async function activatePlan(price) {
+            const { data: { user } } = await _supabase.auth.getUser();
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+
+            if (wallet.balance < price) return alert("❌ رصيدك غير كافٍ! اشحن محفظتك أولاً.");
+
+            if (confirm(`هل تريد خصم $${price} لتفعيل الخطة؟`)) {
+                // 1. خصم من المحفظة
+                await _supabase.from('wallets').update({ balance: wallet.balance - price }).eq('user_id', user.id);
+                // 2. تحديث الاستثمار
+                await _supabase.from('investments').upsert({
+                    user_id: user.id,
+                    invested_amount: price,
+                    status: 'active',
+                    created_at: new Date().toISOString()
+                });
+                alert("✅ تم تفعيل الخطة! ابدأ بجني الأرباح من صفحة المهام.");
+                location.reload();
             }
         }
     </script>
