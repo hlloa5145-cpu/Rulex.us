@@ -3,41 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - المهام اليومية</title>
+    <title>المهمة اليومية - ROLEX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --silver-light: #f1f5f9; --white: #ffffff; --sky-blue: #0ea5e9; --dark-text: #1e293b; --silver-metallic: #e2e8f0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background-color: var(--silver-light); color: var(--dark-text); direction: rtl; padding-bottom: 100px; }
-        .dashboard-header { background: var(--white); padding: 25px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-        .logo-small { font-size: 1.6rem; font-weight: 900; color: var(--sky-blue); letter-spacing: 2px; }
-        .task-container { background: var(--white); margin: 20px; padding: 25px; border-radius: 25px; border: 1px solid var(--silver-metallic); text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.02); }
-        .timer-display { font-size: 2.2rem; font-weight: 800; color: var(--sky-blue); margin: 15px 0; background: #f8fafc; padding: 15px; border-radius: 15px; border: 1px solid var(--silver-metallic); }
-        .btn-claim { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--sky-blue), #38bdf8); color: white; border: none; border-radius: 15px; font-size: 1.2rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3); }
-        .btn-claim:disabled { background: #cbd5e1; box-shadow: none; cursor: not-allowed; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-metallic); }
-        .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
-        .nav-item.active { color: var(--sky-blue); }
+        :root { --blue: #0ea5e9; --bg: #f8fafc; }
+        body { background: var(--bg); font-family: sans-serif; text-align: center; padding: 20px; }
+        .task-card { background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); max-width: 400px; margin: auto; }
+        .timer { font-size: 2.5rem; color: var(--blue); font-weight: 900; margin: 20px 0; background: #f0f9ff; padding: 20px; border-radius: 15px; }
+        .btn-claim { width: 100%; padding: 18px; background: var(--blue); color: white; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .btn-disabled { background: #cbd5e1; cursor: not-allowed; }
     </style>
 </head>
 <body>
-    <header class="dashboard-header">
-        <div class="logo-small">DAILY TASKS</div>
-    </header>
-    <main>
-        <div class="task-container">
-            <i class="fa-solid fa-clock-rotate-left" style="font-size: 3rem; color: var(--sky-blue);"></i>
-            <h3 style="margin-top:15px;">المهمة اليومية</h3>
-            <p style="color: #64748b;">اضغط للمطالبة بأرباح VIP المفعلة</p>
-            <div class="timer-display" id="timer">00:00:00</div>
-            <button class="btn-claim" id="claimBtn">استلام الأرباح</button>
-        </div>
-    </main>
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <a href="tasks.html" class="nav-item active"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
-    </nav>
+
+    <div class="task-card">
+        <i class="fa-solid fa-clock-rotate-left" style="font-size: 4rem; color: var(--blue);"></i>
+        <h2 style="margin-top:20px;">المهمة اليومية</h2>
+        <p style="color: #64748b; font-size: 0.9rem;">اضغط للمطالبة بأرباح VIP المفعلة</p>
+
+        <div class="timer" id="timer">00:00:00</div>
+
+        <button id="claim-btn" class="btn-claim btn-disabled" onclick="claimReward()" disabled>استلام الأرباح</button>
+        <p id="msg" style="margin-top:15px; font-size:0.8rem; color: #ef4444;"></p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="auth.js"></script>
+    <script>
+        async function checkTaskStatus() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return;
+
+            // 1. فحص هل المستخدم لديه خطة نشطة في جدول investments
+            const { data: inv } = await _supabase.from('investments').select('*').eq('user_id', user.id).single();
+            
+            if (!inv || inv.amount <= 0) {
+                document.getElementById('msg').innerText = "❌ يجب تفعيل خطة استثمارية أولاً!";
+                return;
+            }
+
+            // 2. فحص آخر مرة استلم فيها من جدول daily_tasks
+            const { data: task } = await _supabase.from('daily_tasks').select('*').eq('user_id', user.id).single();
+            
+            const now = new Date();
+            const lastClaim = task ? new Date(task.last_claim) : new Date(0);
+            const hoursPassed = (now - lastClaim) / (1000 * 60 * 60);
+
+            if (hoursPassed >= 24) {
+                const btn = document.getElementById('claim-btn');
+                btn.classList.remove('btn-disabled');
+                btn.disabled = false;
+                document.getElementById('timer').innerText = "جاهز للاستلام";
+            } else {
+                startCountdown(24 - hoursPassed);
+            }
+        }
+
+        function startCountdown(hoursLeft) {
+            let seconds = Math.floor(hoursLeft * 3600);
+            const timerEl = document.getElementById('timer');
+            
+            const interval = setInterval(() => {
+                const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
+                const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
+                const s = (seconds % 60).toString().padStart(2, '0');
+                timerEl.innerText = `${h}:${m}:${s}`;
+                if (seconds <= 0) {
+                    clearInterval(interval);
+                    location.reload();
+                }
+                seconds--;
+            }, 1000);
+        }
+
+        async function claimReward() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            // تحديث وقت المطالبة بجدول daily_tasks
+            await _supabase.from('daily_tasks').upsert({ user_id: user.id, last_claim: new Date().toISOString() });
+            
+            // إضافة الربح للمحفظة (مثلاً 1 دولار يومياً)
+            const { data: w } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            await _supabase.from('wallets').update({ balance: w.balance + 1.00 }).eq('user_id', user.id);
+            
+            alert("✅ تم استلام أرباح اليوم!");
+            location.reload();
+        }
+
+        window.onload = checkTaskStatus;
+    </script>
 </body>
 </html>
