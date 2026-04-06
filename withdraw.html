@@ -3,90 +3,134 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - سحب الأرباح</title>
+    <title>سحب الأموال - ROLEX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --silver-bg: #f8fafc; --white: #ffffff; --sky-blue: #0ea5e9; --dark-blue: #1e293b; --silver-border: #e2e8f0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--silver-bg); color: var(--dark-blue); direction: rtl; padding-bottom: 90px; }
-        .header { background: var(--white); padding: 25px; text-align: center; border-bottom: 1px solid var(--silver-border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .header h2 { color: var(--sky-blue); font-size: 1.5rem; }
-        .withdraw-card { background: var(--white); margin: 20px; padding: 25px; border-radius: 25px; border: 1px solid var(--silver-border); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .balance-info { text-align: center; margin-bottom: 25px; padding: 15px; background: #f0f9ff; border-radius: 15px; }
-        .balance-info p { font-size: 0.9rem; color: #64748b; }
-        .balance-info h3 { font-size: 2rem; color: var(--sky-blue); }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
-        .input-group input { width: 100%; padding: 15px; border: 1px solid var(--silver-border); border-radius: 12px; background: #f8fafc; font-size: 1rem; }
-        .btn-withdraw { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--sky-blue), #0284c7); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-border); z-index: 1000; }
-        .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
-        .nav-item.active { color: var(--sky-blue); }
+        :root { --blue: #0ea5e9; --bg: #f8fafc; --red: #ef4444; }
+        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 80px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 450px; margin: auto; }
+        
+        .balance-info { background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
+        .balance-info span { font-size: 0.8rem; color: #64748b; }
+        .balance-info h2 { color: var(--blue); margin: 5px 0; }
+
+        .kyc-alert { background: #fff1f2; border: 1px solid #fecdd3; color: var(--red); padding: 15px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 20px; display: none; text-align: center; }
+        
+        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #1e293b; font-weight: bold; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; }
+        
+        .btn-withdraw { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        .btn-withdraw:disabled { background: #cbd5e1; cursor: not-allowed; }
+
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
+        .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
+        .nav a.active { color: var(--blue); }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <h2>سحب الأموال</h2>
-    </header>
+    <div class="header">
+        <h2>سحب الأرباح</h2>
+    </div>
 
-    <main>
-        <div class="withdraw-card">
-            <div class="balance-info">
-                <p>الرصيد القابل للسحب</p>
-                <h3 id="withdrawable-balance">$0.00</h3>
-            </div>
-
-            <form id="withdraw-form">
-                <div class="input-group">
-                    <label>عنوان المحفظة (USDT - TRC20)</label>
-                    <input type="text" id="wallet-addr" placeholder="أدخل عنوان محفظتك هنا" required>
-                </div>
-                <div class="input-group">
-                    <label>المبلغ المطلوب سحبه</label>
-                    <input type="number" id="amount" placeholder="أقل مبلغ للسحب هو 5$" min="5" required>
-                </div>
-                <button type="submit" class="btn-withdraw">تأكيد عملية السحب</button>
-            </form>
+    <div class="card">
+        <div id="kyc-warning" class="kyc-alert">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            حسابك غير موثق! يرجى رفع الهوية من صفحة الملف الشخصي لتتمكن من السحب.
         </div>
-    </main>
 
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
-        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>الملف</span></a>
+        <div class="balance-info">
+            <span>رصيدك القابل للسحب</span>
+            <h2 id="current-balance">$0.00</h2>
+        </div>
+
+        <form id="withdraw-form" onsubmit="handleWithdraw(event)">
+            <label>طريقة السحب</label>
+            <select id="method" required>
+                <option value="usdt">USDT (TRC20)</option>
+                <option value="bank">تحويل بنكي</option>
+            </select>
+
+            <label>عنوان المحفظة / رقم الحساب</label>
+            <input type="text" id="address" placeholder="أدخل العنوان هنا..." required>
+
+            <label>المبلغ المراد سحبه ($)</label>
+            <input type="number" id="amount" placeholder="الحد الأدنى $10" min="10" required>
+
+            <button type="submit" id="submit-btn" class="btn-withdraw">تقديم طلب السحب</button>
+        </form>
+    </div>
+
+    <nav class="nav">
+        <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
+        <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
+        <a href="tasks.html"><i class="fa-solid fa-calendar-check"></i><br>المهام</a>
+        <a href="profile.html"><i class="fa-solid fa-user"></i><br>الملف</a>
     </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="auth.js"></script>
     <script>
-        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        let userBalance = 0;
+        let isVerified = false;
 
-        // أهم كود لمنع الخروج التلقائي
-        async function checkAccess() {
-            const { data: { session }, error } = await _supabase.auth.getSession();
-            if (error || !session) {
-                window.location.href = 'auth.html';
-            } else {
-                // جلب الرصيد الحقيقي من المحفظة
-                fetchBalance(session.user.id);
+        async function initWithdraw() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) return window.location.href = 'auth.html';
+
+            // جلب الرصيد وحالة التوثيق
+            const { data: wallet } = await _supabase.from('wallets').select('*').eq('user_id', user.id).single();
+            
+            if (wallet) {
+                userBalance = wallet.balance;
+                document.getElementById('current-balance').innerText = `$${userBalance.toFixed(2)}`;
+                
+                // فحص التوثيق
+                if (wallet.kyc_status !== 'verified') {
+                    document.getElementById('kyc-warning').style.display = 'block';
+                    document.getElementById('submit-btn').disabled = true;
+                    document.getElementById('submit-btn').innerText = "التوثيق مطلوب للسحب";
+                } else {
+                    isVerified = true;
+                }
             }
         }
 
-        async function fetchBalance(userId) {
-            const { data } = await _supabase.from('wallets').select('balance').eq('user_id', userId).single();
-            if (data) document.getElementById('withdrawable-balance').innerText = `$${data.balance.toFixed(2)}`;
+        async function handleWithdraw(e) {
+            e.preventDefault();
+            if (!isVerified) return;
+
+            const amount = parseFloat(document.getElementById('amount').value);
+            const address = document.getElementById('address').value;
+            const method = document.getElementById('method').value;
+
+            if (amount > userBalance) {
+                return alert("عذراً، رصيدك غير كافٍ!");
+            }
+
+            const { data: { user } } = await _supabase.auth.getUser();
+
+            // 1. تسجيل طلب السحب في جدول transactions
+            const { error: txError } = await _supabase.from('transactions').insert({
+                user_id: user.id,
+                amount: amount,
+                type: 'withdraw',
+                status: 'pending',
+                details: `Method: ${method}, Address: ${address}`
+            });
+
+            if (txError) return alert("حدث خطأ أثناء تقديم الطلب");
+
+            // 2. خصم المبلغ من المحفظة مؤقتاً (أو يمكنك الخصم بعد موافقة الأدمن)
+            const newBalance = userBalance - amount;
+            await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', user.id);
+
+            alert("✅ تم تقديم طلب السحب بنجاح! بانتظار مراجعة الإدارة.");
+            location.reload();
         }
 
-        document.getElementById('withdraw-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert("تم استلام طلب السحب بنجاح! سيتم التحقق من قبل الإدارة خلال 24 ساعة.");
-        });
-
-        checkAccess();
+        window.onload = initWithdraw;
     </script>
 </body>
 </html>
