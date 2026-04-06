@@ -2,111 +2,45 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>إدارة ROLEX - التحكم الكامل</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>ROLEX Admin</title>
     <style>
-        :root { --dark: #0f172a; --card: #1e293b; --blue: #38bdf8; --green: #22c55e; --red: #ef4444; }
-        body { background: var(--dark); color: white; direction: rtl; font-family: sans-serif; padding: 20px; }
-        .control-panel { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
-        .input-group { margin-bottom: 15px; }
-        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 5px; }
-        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 10px; }
-        .btn-add { background: var(--green); color: white; }
-        .btn-sub { background: var(--red); color: white; }
-        .btn-search { background: var(--blue); color: white; width: 100%; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { padding: 15px; border-bottom: 1px solid #334155; text-align: center; }
-        th { background: #1e293b; color: var(--blue); }
+        body { background: #0f172a; color: white; font-family: sans-serif; text-align: center; padding: 50px; }
+        .box { background: #1e293b; padding: 30px; border-radius: 20px; display: inline-block; border: 1px solid #334155; }
+        input { display: block; width: 300px; padding: 15px; margin: 10px auto; border-radius: 10px; border: none; }
+        .btn { padding: 15px 30px; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; width: 100%; }
+        .add { background: #22c55e; color: white; }
     </style>
 </head>
 <body>
-
-    <h2 style="color:var(--blue); margin-bottom:20px;">إدارة المستخدمين والأرصدة</h2>
-
-    <div class="control-panel">
-        <div class="input-group">
-            <label>البريد الإلكتروني للمستخدم</label>
-            <input type="email" id="target-email" placeholder="أدخل إيميل المستخدم هنا">
-        </div>
-        <div class="input-group">
-            <label>المبلغ ($)</label>
-            <input type="number" id="target-amount" placeholder="0.00">
-        </div>
-        <div style="display:flex; gap:10px;">
-            <button class="btn btn-add" onclick="updateBalance('add')">إضافة رصيد +</button>
-            <button class="btn btn-sub" onclick="updateBalance('sub')">خصم رصيد -</button>
-        </div>
-    </div>
-
-    <div class="control-panel">
-        <h3>قائمة جميع الأعضاء</h3>
-        <table id="users-table">
-            <thead>
-                <tr>
-                    <th>الإيميل</th>
-                    <th>الرصيد الحالي</th>
-                    <th>تاريخ الانضمام</th>
-                </tr>
-            </thead>
-            <tbody id="users-body">
-                </tbody>
-        </div>
+    <div class="box">
+        <h2>إضافة رصيد للمستخدم</h2>
+        <input type="text" id="uid" placeholder="أدخل الرقم الطويل (UID)">
+        <input type="number" id="amount" placeholder="المبلغ ($)">
+        <button class="btn add" onclick="addMoney()">إضافة الرصيد الآن</button>
+        <p id="status"></p>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-        const supabaseKey = 'YOUR_KEY_HERE'; // ضع مفتاحك هنا
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // وظيفة جلب كل المستخدمين وأرصدتهم
-        async function fetchAllUsers() {
-            const { data, error } = await _supabase
-                .from('wallets')
-                .select('user_email, balance, created_at');
-
-            const tbody = document.getElementById('users-body');
-            tbody.innerHTML = '';
-
-            if (data) {
-                data.forEach(user => {
-                    tbody.innerHTML += `
-                        <tr>
-                            <td>${user.user_email}</td>
-                            <td style="color:var(--green)">$${user.balance}</td>
-                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
-                        </tr>
-                    `;
-                });
-            }
-        }
-
-        // وظيفة إضافة أو خصم الرصيد يدوياً
-        async function updateBalance(type) {
-            const email = document.getElementById('target-email').value;
-            const amount = parseFloat(document.getElementById('target-amount').value);
-
-            if(!email || !amount) return alert("يرجى إدخال البيانات كاملة");
-
-            // جلب الرصيد الحالي للمستخدم
-            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_email', email).single();
+        async function addMoney() {
+            const uid = document.getElementById('uid').value;
+            const amt = parseFloat(document.getElementById('amount').value);
             
-            if(!wallet) return alert("المستخدم غير موجود!");
-
-            let newBalance = type === 'add' ? wallet.balance + amount : wallet.balance - amount;
-
-            const { error } = await _supabase
-                .from('wallets')
-                .update({ balance: newBalance })
-                .eq('user_email', email);
-
-            if(!error) {
-                alert(`تم ${type === 'add' ? 'إضافة' : 'خصم'} الرصيد بنجاح!`);
-                fetchAllUsers();
+            // جلب الرصيد الحالي
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
+            
+            if (wallet) {
+                const newBal = wallet.balance + amt;
+                await _supabase.from('wallets').update({ balance: newBal }).eq('user_id', uid);
+                document.getElementById('status').innerText = "✅ تم إضافة الرصيد بنجاح!";
+            } else {
+                document.getElementById('status').innerText = "❌ الرقم الطويل غير صحيح";
             }
         }
-
-        fetchAllUsers();
     </script>
 </body>
 </html>
