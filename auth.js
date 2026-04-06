@@ -1,11 +1,10 @@
-// إعدادات الربط مع Supabase
+// إعدادات الاتصال بـ Supabase
 const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
 const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-// --- وظيفة تسجيل حساب جديد ---
+// 1. وظيفة إنشاء حساب جديد (SignUp)
 async function signUp(email, password) {
-    // 1. تسجيل المستخدم في نظام Auth الخاص بـ Supabase
     const { data: authData, error: authError } = await _supabase.auth.signUp({
         email: email,
         password: password,
@@ -19,14 +18,13 @@ async function signUp(email, password) {
     const user = authData.user;
 
     if (user) {
-        // 2. إنشاء محفظة للمستخدم الجديد في جدول wallets
-        // تأكد أنك أضفت عمود user_email في قاعدة البيانات
+        // إنشاء محفظة تلقائية للمستخدم الجديد بجدول wallets
         const { error: walletError } = await _supabase
             .from('wallets')
             .insert([
                 { 
                     user_id: user.id, 
-                    user_email: user.email, // ربط الإيميل لسهولة البحث بالأدمن
+                    user_email: user.email, 
                     balance: 0.00,
                     total_deposit: 0.00,
                     total_withdraw: 0.00
@@ -34,15 +32,15 @@ async function signUp(email, password) {
             ]);
 
         if (walletError) {
-            console.error("خطأ في إنشاء المحفظة:", walletError.message);
+            console.error("فشل إنشاء المحفظة:", walletError.message);
         } else {
-            alert("تم إنشاء الحساب والمحفظة بنجاح! يرجى تأكيد إيميلك إذا لزم الأمر.");
-            window.location.href = 'index.html'; // التوجه للصفحة الرئيسية
+            alert("تم إنشاء الحساب والمحفظة بنجاح!");
+            window.location.href = 'index.html';
         }
     }
 }
 
-// --- وظيفة تسجيل الدخول ---
+// 2. وظيفة تسجيل الدخول (SignIn)
 async function signIn(email, password) {
     const { data, error } = await _supabase.auth.signInWithPassword({
         email: email,
@@ -56,19 +54,32 @@ async function signIn(email, password) {
     }
 }
 
-// --- وظيفة تسجيل الخروج ---
-async function signOut() {
-    await _supabase.auth.signOut();
+// 3. وظيفة تسجيل الخروج (Logout) - المصلحة
+async function logoutUser() {
+    const { error } = await _supabase.auth.signOut();
+    if (error) {
+        console.error("خطأ:", error.message);
+    }
+    // تنظيف كل البيانات وتوجيه المستخدم لصفحة الدخول
+    localStorage.clear();
+    sessionStorage.clear();
     window.location.href = 'auth.html';
 }
 
-// --- التحقق من حالة الدخول عند تحميل الصفحة ---
+// 4. فحص حالة المستخدم (هل هو مسجل دخول أم لا)
 async function checkUser() {
     const { data: { user } } = await _supabase.auth.getUser();
-    if (user) {
-        // إذا كان المستخدم في صفحة التسجيل وهو مسجل دخول أصلاً، ابعته للرئيسية
-        if (window.location.pathname.includes('auth.html')) {
-            window.location.href = 'index.html';
-        }
+    
+    // إذا كان المستخدم بصفحة auth.html وهو مسجل دخول أصلاً، ابعته للرئيسية
+    if (user && window.location.pathname.includes('auth.html')) {
+        window.location.href = 'index.html';
+    }
+    
+    // إذا كان بصفحة رئيسية وهو مو مسجل دخول، ارجعه لصفحة auth
+    if (!user && (window.location.pathname.includes('index.html') || window.location.pathname.includes('profile.html'))) {
+        window.location.href = 'auth.html';
     }
 }
+
+// تشغيل الفحص عند تحميل الصفحة
+checkUser();
