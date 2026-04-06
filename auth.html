@@ -3,61 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - بوابة الفخامة</title>
-    <link rel="stylesheet" href="style.css">
+    <title>ROLEX - تسجيل الدخول</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --main-blue: #0ea5e9; --bg: #f8fafc; --text: #1e293b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        .auth-container { background: white; width: 100%; max-width: 400px; padding: 40px 30px; border-radius: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.05); text-align: center; border: 1px solid #e2e8f0; }
+        .logo h1 { color: var(--main-blue); font-size: 2.5rem; letter-spacing: 3px; font-weight: 900; margin-bottom: 10px; }
+        .logo p { color: #64748b; font-size: 0.9rem; margin-bottom: 30px; }
+
+        .input-group { margin-bottom: 20px; text-align: right; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--text); font-size: 0.9rem; }
+        .input-group input { width: 100%; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; background: #fcfdfe; outline: none; transition: 0.3s; font-size: 1rem; }
+        .input-group input:focus { border-color: var(--main-blue); box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+
+        .btn-auth { width: 100%; padding: 15px; background: var(--main-blue); color: white; border: none; border-radius: 12px; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn-auth:active { transform: scale(0.98); opacity: 0.9; }
+
+        .toggle-link { margin-top: 25px; font-size: 0.9rem; color: #64748b; }
+        .toggle-link span { color: var(--main-blue); cursor: pointer; font-weight: bold; text-decoration: underline; }
+
+        /* حالة التحميل */
+        .loading { opacity: 0.6; pointer-events: none; }
+    </style>
 </head>
-<body class="auth-body">
+<body>
 
-    <div class="luxury-auth-card">
-        <div class="auth-card-inner">
-            <div class="logo-area">
-                <div class="logo-crown"><i class="fa-solid fa-gem"></i></div>
-                <div class="logo-text">ROLEX</div>
-            </div>
-            
-            <div class="auth-tabs">
-                <button onclick="showTab('login')" id="login-tab" class="active">تسجيل دخول</button>
-                <button onclick="showTab('register')" id="register-tab">إنشاء حساب</button>
-            </div>
+    <div class="auth-container" id="auth-box">
+        <div class="logo">
+            <h1>ROLEX</h1>
+            <p id="auth-title">قم بتسجيل الدخول لبدء الاستثمار</p>
+        </div>
 
-            <form id="login-form" class="auth-form active-form">
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="login-email" placeholder="البريد الإلكتروني" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="login-password" placeholder="كلمة المرور" required>
-                </div>
-                <button type="submit" class="btn-primary">دخول النظام</button>
-            </form>
+        <div class="input-group">
+            <label>البريد الإلكتروني</label>
+            <input type="email" id="email" placeholder="example@mail.com">
+        </div>
 
-            <form id="register-form" class="auth-form hidden-form">
-                <div class="input-group">
-                    <i class="fa-solid fa-envelope"></i>
-                    <input type="email" id="reg-email" placeholder="البريد الإلكتروني" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-lock"></i>
-                    <input type="password" id="reg-password" placeholder="كلمة المرور" required>
-                </div>
-                <div class="input-group">
-                    <i class="fa-solid fa-user-tag"></i>
-                    <input type="text" id="reg-ref" placeholder="كود الإحالة (اختياري)">
-                </div>
-                <button type="submit" class="btn-primary">إنشاء الحساب الفاخر</button>
-            </form>
+        <div class="input-group">
+            <label>كلمة السر</label>
+            <input type="password" id="password" placeholder="••••••••">
+        </div>
 
-            <div class="auth-footer">
-                <a href="https://t.me/Btcun1995" target="_blank">
-                    تواجه مشكلة؟ تواصل مع الدعم الفني
-                </a>
-            </div>
+        <button class="btn-auth" id="main-btn" onclick="handleAuth()">دخول</button>
+
+        <div class="toggle-link" id="toggle-text">
+            ليس لديك حساب؟ <span onclick="toggleMode()">إنشاء حساب جديد</span>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="auth.js"></script>
+
+    <script>
+        let isLoginMode = true;
+
+        function toggleMode() {
+            isLoginMode = !isLoginMode;
+            const title = document.getElementById('auth-title');
+            const btn = document.getElementById('main-btn');
+            const toggle = document.getElementById('toggle-text');
+
+            if (isLoginMode) {
+                title.innerText = "قم بتسجيل الدخول لبدء الاستثمار";
+                btn.innerText = "دخول";
+                toggle.innerHTML = 'ليس لديك حساب؟ <span onclick="toggleMode()">إنشاء حساب جديد</span>';
+            } else {
+                title.innerText = "انضم إلينا وابدأ رحلة الأرباح";
+                btn.innerText = "إنشاء الحساب";
+                toggle.innerHTML = 'لديك حساب بالفعل؟ <span onclick="toggleMode()">تسجيل الدخول</span>';
+            }
+        }
+
+        async function handleAuth() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('main-btn');
+
+            if (!email || !password) {
+                alert("يرجى ملء جميع الحقول");
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.innerText = "جاري المعالجة...";
+
+            if (isLoginMode) {
+                await signIn(email, password);
+            } else {
+                await signUp(email, password);
+            }
+
+            btn.classList.remove('loading');
+            btn.innerText = isLoginMode ? "دخول" : "إنشاء الحساب";
+        }
+
+        // فحص إذا كان المستخدم مسجل دخول أصلاً
+        window.onload = checkUser;
+    </script>
 </body>
 </html>
