@@ -3,106 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - شحن الرصيد</title>
+    <title>ROLEX - إيداع</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
     <style>
-        :root {
-            --silver-light: #f8fafc;
-            --silver-metallic: #e2e8f0;
-            --white: #ffffff;
-            --sky-blue: #0ea5e9;
-            --dark-text: #1e293b;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-
-        body { background-color: var(--silver-light); color: var(--dark-text); direction: rtl; padding-bottom: 90px; }
-
-        .dashboard-header { background: var(--white); padding: 25px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); text-align: center; }
-
-        .logo-small { font-size: 1.6rem; font-weight: 900; color: var(--sky-blue); letter-spacing: 2px; }
-
-        .network-selector { display: flex; gap: 10px; margin: 20px; }
-
-        .network-selector button {
-            flex: 1; padding: 12px;
-            border: 1px solid var(--silver-metallic);
-            background: white; border-radius: 12px; cursor: pointer;
-        }
-
-        .network-selector button.active { background: var(--sky-blue); color: white; border-color: var(--sky-blue); }
-
-        .address-box {
-            background: var(--white);
-            margin: 20px; padding: 20px;
-            border-radius: 20px; text-align: center;
-            border: 1px solid var(--silver-metallic);
-        }
-
-        .copy-area {
-            background: #f1f5f9; padding: 10px;
-            border-radius: 10px; margin: 10px 0;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-
-        .copy-area span { font-weight: bold; color: var(--sky-blue); font-size: 1.1rem; }
-
-        .copy-area button { background: var(--sky-blue); color: white; border: none; padding: 5px 10px; border-radius: 8px; }
-
-        .upload-area { background: white; margin: 20px; padding: 20px; border-radius: 20px; border: 1px solid var(--silver-metallic); }
-
-        .upload-area input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid var(--silver-metallic); border-radius: 8px; }
-
-        .btn-primary { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 15px; font-weight: bold; }
-
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-metallic); z-index: 1000; }
-
+        :root { --silver-bg: #f8fafc; --white: #ffffff; --sky-blue: #0ea5e9; --dark-blue: #1e293b; --silver-border: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--silver-bg); color: var(--dark-blue); direction: rtl; padding-bottom: 90px; }
+        .header { background: var(--white); padding: 25px; text-align: center; border-bottom: 1px solid var(--silver-border); }
+        .header h2 { color: var(--sky-blue); }
+        .deposit-card { background: var(--white); margin: 20px; padding: 25px; border-radius: 25px; border: 1px solid var(--silver-border); }
+        .wallet-box { background: #f0f9ff; padding: 15px; border-radius: 15px; border: 1px dashed var(--sky-blue); margin: 15px 0; text-align: center; }
+        .wallet-box span { font-weight: bold; font-size: 0.9rem; word-break: break-all; color: var(--dark-blue); }
+        .copy-btn { background: var(--sky-blue); color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; }
+        .input-group input { width: 100%; padding: 12px; border: 1px solid var(--silver-border); border-radius: 10px; }
+        .btn-submit { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-border); }
         .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
-
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
-
         .nav-item.active { color: var(--sky-blue); }
     </style>
 </head>
 <body>
-
-    <header class="dashboard-header">
-        <div class="logo-small">ROLEX</div>
-        <h3>شحن رصيد</h3>
-    </header>
-
+    <header class="header"><h2>إيداع USDT</h2></header>
     <main>
-        <div class="network-selector">
-            <button class="active">USDT (TRC20)</button>
-            <button>USDT (BEP20)</button>
-        </div>
-
-        <div class="address-box">
-            <p>عنوان المحفظة للإيداع:</p>
-            <div class="copy-area">
-                <span id="wallet-address">TA3uvkYmFmWhJ5DePkgWN8y1rVt6sxbpZB</span>
-                <button><i class="fa-solid fa-copy"></i></button>
+        <div class="deposit-card">
+            <p style="text-align: center; font-size: 0.9rem; color: #64748b;">قم بتحويل المبلغ إلى العنوان التالي (TRC20):</p>
+            <div class="wallet-box">
+                <span id="addr">TA3uvkYmFmWhJ5DePkgWN8y1rVt6sxbpZB</span><br>
+                <button class="copy-btn" onclick="copyAddr()">نسخ العنوان</button>
             </div>
-            <p>الشبكة: TRC20</p>
+            <form id="deposit-form">
+                <div class="input-group">
+                    <label>المبلغ المودع ($)</label>
+                    <input type="number" id="dep-amount" placeholder="مثلاً: 50" required>
+                </div>
+                <div class="input-group">
+                    <label>إثبات التحويل (صورة)</label>
+                    <input type="file" id="dep-image" accept="image/*" required>
+                </div>
+                <button type="submit" class="btn-submit">إرسال الطلب للمراجعة</button>
+            </form>
         </div>
-
-        <form class="upload-area">
-            <h4>إثبات التحويل</h4>
-            <input type="number" placeholder="المبلغ المودع ($)" required>
-            <div class="file-input">
-                <label>ارفع صورة وصل التحويل</label>
-                <input type="file" accept="image/*" required>
-            </div>
-            <button type="submit" class="btn-primary">إرسال الطلب للمراجعة</button>
-        </form>
     </main>
-
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
+        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
         <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
     </nav>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script>
+        // كود فحص الجلسة لمنع الخروج
+        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        async function check() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) window.location.href = 'auth.html'; }
+        function copyAddr() { navigator.clipboard.writeText(document.getElementById('addr').innerText); alert("تم النسخ!"); }
+        check();
+    </script>
 </body>
 </html>
