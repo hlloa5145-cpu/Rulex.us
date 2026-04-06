@@ -1,39 +1,212 @@
-<div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
-    <h4>إدارة الاستثمار</h4>
-    <p id="inv-status" style="font-size: 0.9rem; color: #64748b;">جاري التحميل...</p>
-    <button onclick="withdrawInvest()" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer;">سحب رأس المال (غرامة 20%)</button>
-</div>
-
-<script>
-    async function loadInvestInfo() {
-        const { data: { user } } = await _supabase.auth.getUser();
-        const { data: inv } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).single();
-        if (inv && inv.invested_amount > 0) {
-            document.getElementById('inv-status').innerText = `المبلغ المستثمر حالياً: $${inv.invested_amount}`;
-        } else {
-            document.getElementById('inv-status').innerText = "لا يوجد استثمار نشط";
-        }
-    }
-
-    async function withdrawInvest() {
-        const { data: { user } } = await _supabase.auth.getUser();
-        const { data: inv } = await _supabase.from('investments').select('*').eq('user_id', user.id).single();
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الملف الشخصي - ROLEX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root { --blue: #0ea5e9; --bg: #f8fafc; --red: #ef4444; --green: #22c55e; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg); padding-bottom: 90px; }
         
-        if (!inv || inv.invested_amount <= 0) return alert("لا يوجد استثمار لسحبه!");
+        .header { background: white; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 100; }
+        .container { padding: 15px; max-width: 500px; margin: auto; }
 
-        const penalty = inv.invested_amount * 0.20;
-        const net = inv.invested_amount - penalty;
+        /* كرت الرصيد المطور */
+        .balance-card { 
+            background: linear-gradient(135deg, #0ea5e9, #0284c7); 
+            color: white; padding: 30px; border-radius: 25px; 
+            text-align: center; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2);
+            margin-bottom: 20px;
+        }
+        .balance-card h1 { font-size: 2.5rem; margin: 10px 0; }
+        
+        /* البطاقات البيضاء */
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); }
+        .card-title { font-size: 0.9rem; color: #64748b; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
 
-        if (confirm(`⚠️ سيتم خصم $${penalty} كغرامة. سيصلك $${net} لمحفظتك. هل أنت متأكد؟`)) {
-            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
-            // 1. إعادة المال المخصوم للمحفظة
-            await _supabase.from('wallets').update({ balance: wallet.balance + net }).eq('user_id', user.id);
-            // 2. تصفير الاستثمار
-            await _supabase.from('investments').update({ invested_amount: 0, status: 'closed' }).eq('user_id', user.id);
-            
-            alert("✅ تم سحب رأس المال بنجاح.");
+        /* قسم الاستثمار */
+        .invest-box { border-left: 4px solid var(--red); background: #fff1f2; }
+        .btn-withdraw { width: 100%; padding: 12px; background: var(--red); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-withdraw:active { transform: scale(0.98); }
+
+        /* قسم توثيق الهوية KYC */
+        .kyc-box { border-left: 4px solid var(--blue); }
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; }
+        .pending { background: #fef3c7; color: #d97706; }
+        .verified { background: #dcfce7; color: #166534; }
+        .unverified { background: #f1f5f9; color: #64748b; }
+
+        /* الحقول والمعلومات */
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.85rem; border-bottom: 1px dashed #f1f5f9; padding-bottom: 8px; }
+        .info-row b { color: #1e293b; font-family: monospace; }
+
+        /* القائمة السفلية */
+        .nav { position: fixed; bottom: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
+        .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; transition: 0.3s; }
+        .nav a.active { color: var(--blue); font-weight: bold; }
+        .nav i { font-size: 1.3rem; margin-bottom: 4px; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header"><h3>الملف الشخصي</h3></div>
+
+    <div class="container">
+        <div class="balance-card">
+            <p style="opacity: 0.9;">إجمالي الرصيد المتوفر</p>
+            <h1 id="user-balance">$0.00</h1>
+            <p style="font-size: 0.8rem; opacity: 0.8;" id="user-email">loading...</p>
+        </div>
+
+        <div class="card">
+            <div class="card-title"><i class="fa-solid fa-wallet"></i> بيانات الحساب</div>
+            <div class="info-row">
+                <span>رقم المحفظة (UID):</span>
+                <b id="user-uid">---</b>
+            </div>
+            <button onclick="copyUID()" style="width:100%; padding:8px; border:1px solid var(--blue); color:var(--blue); background:none; border-radius:10px; font-size:0.8rem; cursor:pointer;">نسخ رقم المحفظة</button>
+        </div>
+
+        <div class="card kyc-box">
+            <div class="card-title">
+                <i class="fa-solid fa-id-card"></i> توثيق الهوية 
+                <span id="kyc-badge" class="status-badge unverified">غير موثق</span>
+            </div>
+            <p id="kyc-msg" style="font-size: 0.75rem; color: #64748b; margin-bottom: 10px;">يجب توثيق الهوية لتتمكن من سحب الأرباح.</p>
+            <input type="file" id="id-upload" class="hidden" accept="image/*" onchange="handleKYCUpload()">
+            <button id="kyc-btn" class="btn-withdraw" style="background:var(--blue);" onclick="document.getElementById('id-upload').click()">رفع صورة الهوية</button>
+        </div>
+
+        <div class="card invest-box">
+            <div class="card-title" style="color: var(--red);"><i class="fa-solid fa-chart-line"></i> استثمارات VIP</div>
+            <div class="info-row">
+                <span>المبلغ المستثمر:</span>
+                <b id="invested-amount" style="color: var(--red);">$0.00</b>
+            </div>
+            <button class="btn-withdraw" onclick="terminateInvestment()">إغلاق الاستثمار وسحب رأس المال</button>
+            <p style="font-size: 0.65rem; color: var(--red); margin-top: 10px; text-align: center;">* سيتم خصم 20% غرامة عند السحب المبكر.</p>
+        </div>
+
+        <button onclick="logout()" style="width:100%; padding:15px; background:#f1f5f9; color:#64748b; border:none; border-radius:15px; cursor:pointer; font-weight:bold;">تسجيل الخروج</button>
+    </div>
+
+    <nav class="nav">
+        <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
+        <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
+        <a href="tasks.html"><i class="fa-solid fa-calendar-check"></i><br>المهام</a>
+        <a href="profile.html" class="active"><i class="fa-solid fa-user"></i><br>الملف</a>
+    </nav>
+
+    <script src="auth.js"></script> <script>
+        // 1. تحميل بيانات البروفايل
+        async function loadProfileData() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!user) { window.location.href = 'auth.html'; return; }
+
+            document.getElementById('user-email').innerText = user.email;
+            document.getElementById('user-uid').innerText = user.id;
+
+            // جلب الرصيد والتوثيق من جدول wallets
+            const { data: wallet } = await _supabase.from('wallets').select('*').eq('user_id', user.id).single();
+            if (wallet) {
+                document.getElementById('user-balance').innerText = `$${wallet.balance.toFixed(2)}`;
+                updateKYCUI(wallet.kyc_status);
+            }
+
+            // جلب الاستثمار
+            const { data: inv } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).single();
+            if (inv) {
+                document.getElementById('invested-amount').innerText = `$${inv.invested_amount.toFixed(2)}`;
+            }
+        }
+
+        // 2. تحديث واجهة التوثيق
+        function updateKYCUI(status) {
+            const badge = document.getElementById('kyc-badge');
+            const msg = document.getElementById('kyc-msg');
+            const btn = document.getElementById('kyc-btn');
+
+            badge.className = 'status-badge ' + status;
+            if (status === 'pending') {
+                badge.innerText = 'قيد المراجعة';
+                msg.innerText = 'جاري مراجعة هويتك من قبل الإدارة..';
+                btn.classList.add('hidden');
+            } else if (status === 'verified') {
+                badge.innerText = 'تم التوثيق ✅';
+                msg.innerText = 'حسابك موثق بالكامل، يمكنك السحب الآن.';
+                msg.style.color = 'var(--green)';
+                btn.classList.add('hidden');
+            } else if (status === 'rejected') {
+                badge.innerText = 'تم الرفض ❌';
+                msg.innerText = 'تم رفض الهوية، يرجى الرفع مرة أخرى بصورة أوضح.';
+            } else {
+                badge.innerText = 'غير موثق';
+            }
+        }
+
+        // 3. رفع الهوية
+        async function handleKYCUpload() {
+            const file = document.getElementById('id-upload').files[0];
+            const { data: { user } } = await _supabase.auth.getUser();
+            if (!file) return;
+
+            const btn = document.getElementById('kyc-btn');
+            btn.innerText = "جاري الرفع...";
+            btn.disabled = true;
+
+            const fileName = `kyc/${user.id}_${Date.now()}.jpg`;
+            const { data, error } = await _supabase.storage.from('id-cards').upload(fileName, file);
+
+            if (error) { alert("فشل الرفع: " + error.message); btn.disabled = false; return; }
+
+            const publicUrl = `https://tlfwdjpmkgngigwaslqe.supabase.co/storage/v1/object/public/id-cards/${fileName}`;
+            await _supabase.from('wallets').update({ 
+                kyc_status: 'pending',
+                id_card_url: publicUrl 
+            }).eq('user_id', user.id);
+
+            alert("✅ تم رفع الهوية بنجاح!");
             location.reload();
         }
-    }
-    loadInvestInfo();
-</script>
+
+        // 4. إنهاء الاستثمار مع غرامة
+        async function terminateInvestment() {
+            const { data: { user } } = await _supabase.auth.getUser();
+            const { data: inv } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).single();
+
+            if (!inv || inv.invested_amount <= 0) return alert("ليس لديك استثمار نشط!");
+
+            const penalty = inv.invested_amount * 0.20;
+            const netAmount = inv.invested_amount - penalty;
+
+            if (confirm(`⚠️ تنبيه غرامة سحب مبكر:\nسيتم خصم $${penalty.toFixed(2)} غرامة (20%).\nالمبلغ العائد لمحفظتك: $${netAmount.toFixed(2)}.\nهل تريد الاستمرار؟`)) {
+                const { data: w } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+                
+                await _supabase.from('wallets').update({ balance: w.balance + netAmount }).eq('user_id', user.id);
+                await _supabase.from('investments').update({ invested_amount: 0, status: 'closed' }).eq('user_id', user.id);
+
+                alert("✅ تم إغلاق الاستثمار وإعادة المبلغ الصافي للمحفظة.");
+                location.reload();
+            }
+        }
+
+        function copyUID() {
+            const uid = document.getElementById('user-uid').innerText;
+            navigator.clipboard.writeText(uid);
+            alert("تم نسخ UID بنجاح");
+        }
+
+        async function logout() {
+            await _supabase.auth.signOut();
+            window.location.href = 'auth.html';
+        }
+
+        window.onload = loadProfileData;
+    </script>
+</body>
+</html>
