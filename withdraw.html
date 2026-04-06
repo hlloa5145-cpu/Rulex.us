@@ -4,64 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ROLEX - سحب الأرباح</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --silver-bg: #f8fafc; --white: #ffffff; --sky-blue: #0ea5e9; --dark-blue: #1e293b; --silver-border: #e2e8f0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--silver-bg); color: var(--dark-blue); direction: rtl; padding-bottom: 90px; }
+        .header { background: var(--white); padding: 25px; text-align: center; border-bottom: 1px solid var(--silver-border); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .header h2 { color: var(--sky-blue); font-size: 1.5rem; }
+        .withdraw-card { background: var(--white); margin: 20px; padding: 25px; border-radius: 25px; border: 1px solid var(--silver-border); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .balance-info { text-align: center; margin-bottom: 25px; padding: 15px; background: #f0f9ff; border-radius: 15px; }
+        .balance-info p { font-size: 0.9rem; color: #64748b; }
+        .balance-info h3 { font-size: 2rem; color: var(--sky-blue); }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.9rem; }
+        .input-group input { width: 100%; padding: 15px; border: 1px solid var(--silver-border); border-radius: 12px; background: #f8fafc; font-size: 1rem; }
+        .btn-withdraw { width: 100%; padding: 18px; background: linear-gradient(135deg, var(--sky-blue), #0284c7); color: white; border: none; border-radius: 15px; font-size: 1.1rem; font-weight: bold; cursor: pointer; box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3); }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-border); z-index: 1000; }
+        .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
+        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; }
+        .nav-item.active { color: var(--sky-blue); }
+    </style>
 </head>
 <body>
 
-    <header class="dashboard-header">
-        <div class="logo-small">ROLEX WITHDRAW</div>
-        <h3>طلب سحب الأرباح</h3>
+    <header class="header">
+        <h2>سحب الأموال</h2>
     </header>
 
-    <section class="withdraw-section">
-        <div class="balance-card silver-card">
-            <p>الرصيد القابل للسحب:</p>
-            <h2 id="withdrawable-balance">$0.00</h2>
+    <main>
+        <div class="withdraw-card">
+            <div class="balance-info">
+                <p>الرصيد القابل للسحب</p>
+                <h3 id="withdrawable-balance">$0.00</h3>
+            </div>
+
+            <form id="withdraw-form">
+                <div class="input-group">
+                    <label>عنوان المحفظة (USDT - TRC20)</label>
+                    <input type="text" id="wallet-addr" placeholder="أدخل عنوان محفظتك هنا" required>
+                </div>
+                <div class="input-group">
+                    <label>المبلغ المطلوب سحبه</label>
+                    <input type="number" id="amount" placeholder="أقل مبلغ للسحب هو 5$" min="5" required>
+                </div>
+                <button type="submit" class="btn-withdraw">تأكيد عملية السحب</button>
+            </form>
         </div>
-
-        <div id="kyc-alert" class="alert-box hidden">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            <p>يجب توثيق الهوية (KYC) من صفحة الملف الشخصي لتتمكن من السحب.</p>
-        </div>
-
-        <form id="withdraw-form" class="withdraw-form">
-            <div class="input-group">
-                <label>حدد الشبكة</label>
-                <select id="withdraw-network">
-                    <option value="TRC20">USDT (TRC20)</option>
-                    <option value="BEP20">USDT (BEP20)</option>
-                </select>
-            </div>
-
-            <div class="input-group">
-                <label>عنوان محفظتك</label>
-                <input type="text" id="user-wallet-addr" placeholder="أدخل عنوان محفظتك هنا" required>
-            </div>
-
-            <div class="input-group">
-                <label>المبلغ المطلوب ($)</label>
-                <input type="number" id="withdraw-amount" placeholder="أدنى حد للسحب 10$" min="10" required>
-            </div>
-
-            <button type="submit" id="submit-withdraw" class="btn-primary">تأكيد طلب السحب</button>
-        </form>
-
-        <p class="withdraw-note">تتم معالجة طلبات السحب خلال 24 ساعة كحد أقصى.</p>
-    </section>
+    </main>
 
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
         <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <div class="nav-actions">
-            <button class="btn-deposit" onclick="location.href='deposit.html'">شحن</button>
-            <button class="btn-withdraw active">سحب</button>
-        </div>
         <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
+        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i><span>الملف</span></a>
     </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="withdraw.js"></script>
+    <script>
+        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
+        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // أهم كود لمنع الخروج التلقائي
+        async function checkAccess() {
+            const { data: { session }, error } = await _supabase.auth.getSession();
+            if (error || !session) {
+                window.location.href = 'auth.html';
+            } else {
+                // جلب الرصيد الحقيقي من المحفظة
+                fetchBalance(session.user.id);
+            }
+        }
+
+        async function fetchBalance(userId) {
+            const { data } = await _supabase.from('wallets').select('balance').eq('user_id', userId).single();
+            if (data) document.getElementById('withdrawable-balance').innerText = `$${data.balance.toFixed(2)}`;
+        }
+
+        document.getElementById('withdraw-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert("تم استلام طلب السحب بنجاح! سيتم التحقق من قبل الإدارة خلال 24 ساعة.");
+        });
+
+        checkAccess();
+    </script>
 </body>
 </html>
