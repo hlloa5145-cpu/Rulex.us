@@ -2,101 +2,111 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - لوحة التحكم للآدمن</title>
+    <title>إدارة ROLEX - التحكم الكامل</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --admin-dark: #0f172a; --admin-card: #1e293b; --accent-blue: #38bdf8; --text-light: #f1f5f9; --danger: #ef4444; --success: #22c55e; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--admin-dark); color: var(--text-light); direction: rtl; padding: 20px; }
-        .admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; border-bottom: 1px solid #334155; padding-bottom: 15px; }
-        .admin-header h1 { color: var(--accent-blue); font-size: 1.5rem; }
-        
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .stat-box { background: var(--admin-card); padding: 20px; border-radius: 15px; text-align: center; border: 1px solid #334155; }
-        .stat-box h3 { font-size: 1.8rem; color: var(--accent-blue); }
-
-        .request-card { background: var(--admin-card); padding: 20px; border-radius: 20px; margin-bottom: 15px; border: 1px solid #334155; }
-        .request-header { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
-        .user-email { color: var(--accent-blue); font-weight: bold; }
-        
-        .proof-img { width: 100%; border-radius: 10px; margin: 10px 0; cursor: pointer; border: 1px solid #475569; }
-        
-        .action-btns { display: flex; gap: 10px; margin-top: 15px; }
-        .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .btn-approve { background: var(--success); color: white; }
-        .btn-reject { background: var(--danger); color: white; }
-        
-        .section-title { margin-bottom: 15px; font-size: 1.1rem; border-right: 4px solid var(--accent-blue); padding-right: 10px; }
+        :root { --dark: #0f172a; --card: #1e293b; --blue: #38bdf8; --green: #22c55e; --red: #ef4444; }
+        body { background: var(--dark); color: white; direction: rtl; font-family: sans-serif; padding: 20px; }
+        .control-panel { background: var(--card); padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #334155; }
+        .input-group { margin-bottom: 15px; }
+        input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white; margin-top: 5px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        .btn-add { background: var(--green); color: white; }
+        .btn-sub { background: var(--red); color: white; }
+        .btn-search { background: var(--blue); color: white; width: 100%; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 15px; border-bottom: 1px solid #334155; text-align: center; }
+        th { background: #1e293b; color: var(--blue); }
     </style>
 </head>
 <body>
 
-    <header class="admin-header">
-        <h1>إدارة ROLEX</h1>
-        <button onclick="location.href='index.html'" style="background:none; border:1px solid #475569; color:white; padding:5px 10px; border-radius:5px;">خروج</button>
-    </header>
+    <h2 style="color:var(--blue); margin-bottom:20px;">إدارة المستخدمين والأرصدة</h2>
 
-    <main>
-        <div class="stats-grid">
-            <div class="stat-box">
-                <p>إجمالي المودعين</p>
-                <h3 id="total-users">0</h3>
-            </div>
-            <div class="stat-box">
-                <p>طلبات معلقة</p>
-                <h3 id="pending-reqs">0</h3>
-            </div>
+    <div class="control-panel">
+        <div class="input-group">
+            <label>البريد الإلكتروني للمستخدم</label>
+            <input type="email" id="target-email" placeholder="أدخل إيميل المستخدم هنا">
         </div>
+        <div class="input-group">
+            <label>المبلغ ($)</label>
+            <input type="number" id="target-amount" placeholder="0.00">
+        </div>
+        <div style="display:flex; gap:10px;">
+            <button class="btn btn-add" onclick="updateBalance('add')">إضافة رصيد +</button>
+            <button class="btn btn-sub" onclick="updateBalance('sub')">خصم رصيد -</button>
+        </div>
+    </div>
 
-        <h2 class="section-title">طلبات الإيداع (قيد الانتظار)</h2>
-        
-        <div id="requests-list">
-            <div class="request-card">
-                <div class="request-header">
-                    <span class="user-email">user@example.com</span>
-                    <span>المبلغ: <b style="color:var(--success)">50$</b></span>
-                </div>
-                <p style="font-size: 0.8rem; color: #94a3b8;">إثبات التحويل:</p>
-                <img src="https://via.placeholder.com/300x150" class="proof-img" alt="وصل التحويل">
-                
-                <div class="action-btns">
-                    <button class="btn btn-approve" onclick="approve(this)">موافقة وتعبئة الرصيد</button>
-                    <button class="btn btn-reject" onclick="reject(this)">رفض الطلب</button>
-                </div>
-            </div>
+    <div class="control-panel">
+        <h3>قائمة جميع الأعضاء</h3>
+        <table id="users-table">
+            <thead>
+                <tr>
+                    <th>الإيميل</th>
+                    <th>الرصيد الحالي</th>
+                    <th>تاريخ الانضمام</th>
+                </tr>
+            </thead>
+            <tbody id="users-body">
+                </tbody>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script>
         const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
+        const supabaseKey = 'YOUR_KEY_HERE'; // ضع مفتاحك هنا
         const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
-        // فحص إذا كان الداخل هو الآدمن فعلاً
-        async function checkAdmin() {
-            const { data: { session } } = await _supabase.auth.getSession();
-            if (!session || session.user.email !== 'hlloa5145@gmail.com') { // حط إيميلك هون
-                alert("غير مسموح لك بدخول صفحة الإدارة!");
-                window.location.href = 'index.html';
+        // وظيفة جلب كل المستخدمين وأرصدتهم
+        async function fetchAllUsers() {
+            const { data, error } = await _supabase
+                .from('wallets')
+                .select('user_email, balance, created_at');
+
+            const tbody = document.getElementById('users-body');
+            tbody.innerHTML = '';
+
+            if (data) {
+                data.forEach(user => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${user.user_email}</td>
+                            <td style="color:var(--green)">$${user.balance}</td>
+                            <td>${new Date(user.created_at).toLocaleDateString()}</td>
+                        </tr>
+                    `;
+                });
             }
         }
 
-        function approve(btn) {
-            if(confirm("هل أنت متأكد من إضافة الرصيد للمستخدم؟")) {
-                btn.parentElement.parentElement.style.opacity = '0.5';
-                alert("تم تحديث رصيد المستخدم بنجاح!");
+        // وظيفة إضافة أو خصم الرصيد يدوياً
+        async function updateBalance(type) {
+            const email = document.getElementById('target-email').value;
+            const amount = parseFloat(document.getElementById('target-amount').value);
+
+            if(!email || !amount) return alert("يرجى إدخال البيانات كاملة");
+
+            // جلب الرصيد الحالي للمستخدم
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_email', email).single();
+            
+            if(!wallet) return alert("المستخدم غير موجود!");
+
+            let newBalance = type === 'add' ? wallet.balance + amount : wallet.balance - amount;
+
+            const { error } = await _supabase
+                .from('wallets')
+                .update({ balance: newBalance })
+                .eq('user_email', email);
+
+            if(!error) {
+                alert(`تم ${type === 'add' ? 'إضافة' : 'خصم'} الرصيد بنجاح!`);
+                fetchAllUsers();
             }
         }
 
-        function reject(btn) {
-            if(confirm("هل تريد رفض هذا الطلب؟")) {
-                btn.parentElement.parentElement.remove();
-            }
-        }
-
-        checkAdmin();
+        fetchAllUsers();
     </script>
 </body>
 </html>
