@@ -1,117 +1,39 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - الملف الشخصي</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root { --main-blue: #0ea5e9; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
-        
-        .header { background: white; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        .header h1 { color: var(--main-blue); font-size: 1.5rem; font-weight: 900; }
+<div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+    <h4>إدارة الاستثمار</h4>
+    <p id="inv-status" style="font-size: 0.9rem; color: #64748b;">جاري التحميل...</p>
+    <button onclick="withdrawInvest()" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; padding: 10px; border-radius: 10px; width: 100%; cursor: pointer;">سحب رأس المال (غرامة 20%)</button>
+</div>
 
-        .profile-container { padding: 20px; max-width: 500px; margin: auto; }
-        
-        /* كرت معلومات المستخدم */
-        .user-card { background: white; padding: 30px; border-radius: 25px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
-        .avatar { width: 70px; height: 70px; background: #e0f2fe; color: var(--main-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-size: 1.8rem; }
-        
-        .info-row { background: #f1f5f9; padding: 15px; border-radius: 15px; margin-top: 15px; text-align: right; position: relative; }
-        .info-row span { display: block; font-size: 0.75rem; color: #64748b; margin-bottom: 4px; }
-        .info-row b { font-size: 0.9rem; word-break: break-all; color: var(--text); }
-        
-        .copy-btn { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); background: var(--main-blue); color: white; border: none; padding: 6px 12px; border-radius: 8px; font-size: 0.7rem; cursor: pointer; font-weight: bold; }
-        
-        .balance-box { margin-top: 25px; padding: 20px; background: #f0f9ff; border-radius: 20px; border: 1px solid #bae6fd; }
-        .balance-box h2 { color: var(--main-blue); font-size: 2rem; margin-top: 5px; }
+<script>
+    async function loadInvestInfo() {
+        const { data: { user } } = await _supabase.auth.getUser();
+        const { data: inv } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).single();
+        if (inv && inv.invested_amount > 0) {
+            document.getElementById('inv-status').innerText = `المبلغ المستثمر حالياً: $${inv.invested_amount}`;
+        } else {
+            document.getElementById('inv-status').innerText = "لا يوجد استثمار نشط";
+        }
+    }
 
-        .logout-btn { width: 100%; padding: 16px; background: #ef4444; color: white; border: none; border-radius: 15px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; }
-        .logout-btn:active { transform: scale(0.98); opacity: 0.9; }
+    async function withdrawInvest() {
+        const { data: { user } } = await _supabase.auth.getUser();
+        const { data: inv } = await _supabase.from('investments').select('*').eq('user_id', user.id).single();
+        
+        if (!inv || inv.invested_amount <= 0) return alert("لا يوجد استثمار لسحبه!");
 
-        /* الملاحة السفلية */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 15px; border-top: 1px solid #e2e8f0; }
-        .nav-item { color: #94a3b8; text-decoration: none; text-align: center; font-size: 0.7rem; }
-        .nav-item i { font-size: 1.3rem; margin-bottom: 4px; display: block; }
-        .nav-item.active { color: var(--main-blue); }
-    </style>
-</head>
-<body>
+        const penalty = inv.invested_amount * 0.20;
+        const net = inv.invested_amount - penalty;
 
-    <div class="header">
-        <h1>الملف الشخصي</h1>
-    </div>
-
-    <div class="profile-container">
-        <div class="user-card">
-            <div class="avatar"><i class="fa-solid fa-user-gear"></i></div>
-            <h3 id="display-email">جاري التحميل...</h3>
+        if (confirm(`⚠️ سيتم خصم $${penalty} كغرامة. سيصلك $${net} لمحفظتك. هل أنت متأكد؟`)) {
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            // 1. إعادة المال المخصوم للمحفظة
+            await _supabase.from('wallets').update({ balance: wallet.balance + net }).eq('user_id', user.id);
+            // 2. تصفير الاستثمار
+            await _supabase.from('investments').update({ invested_amount: 0, status: 'closed' }).eq('user_id', user.id);
             
-            <div class="info-row">
-                <span>الرقم الطويل الخاص بك (UID):</span>
-                <b id="display-uid">جاري التحميل...</b>
-                <button class="copy-btn" onclick="copyUID()">نسخ</button>
-            </div>
-
-            <div class="balance-box">
-                <span>إجمالي الرصيد المتاح</span>
-                <h2 id="display-balance">$0.00</h2>
-            </div>
-
-            <button class="logout-btn" onclick="logoutUser()">
-                <i class="fa-solid fa-right-from-bracket"></i>
-                تسجيل الخروج
-            </button>
-        </div>
-    </div>
-
-    <nav class="bottom-nav">
-        <a href="profile.html" class="nav-item active"><i class="fa-solid fa-user"></i>الملف</a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i>الفريق</a>
-        <a href="invest.html" class="nav-item"><i class="fa-solid fa-gem"></i>استثمار</a>
-        <a href="index.html" class="nav-item"><i class="fa-solid fa-house"></i>الرئيسية</a>
-    </nav>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <script src="auth.js"></script> <script>
-        // وظيفة جلب بيانات المستخدم وعرضها
-        async function loadProfileData() {
-            const { data: { user } } = await _supabase.auth.getUser();
-
-            if (!user) {
-                window.location.href = 'auth.html';
-                return;
-            }
-
-            document.getElementById('display-email').innerText = user.email;
-            document.getElementById('display-uid').innerText = user.id;
-
-            // جلب الرصيد من جدول wallets بناءً على UID
-            const { data: wallet, error } = await _supabase
-                .from('wallets')
-                .select('balance')
-                .eq('user_id', user.id)
-                .single();
-
-            if (wallet) {
-                document.getElementById('display-balance').innerText = `$${wallet.balance.toFixed(2)}`;
-            } else {
-                console.log("لم يتم العثور على محفظة");
-            }
+            alert("✅ تم سحب رأس المال بنجاح.");
+            location.reload();
         }
-
-        // وظيفة نسخ الـ UID
-        function copyUID() {
-            const uidText = document.getElementById('display-uid').innerText;
-            navigator.clipboard.writeText(uidText).then(() => {
-                alert("✅ تم نسخ الرقم الطويل (UID) بنجاح!");
-            });
-        }
-
-        // تشغيل الجلب عند التحميل
-        window.onload = loadProfileData;
-    </script>
-</body>
-</html>
+    }
+    loadInvestInfo();
+</script>
