@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ROLEX - الاستثمار</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root { --silver-bg: #f1f5f9; --white: #ffffff; --sky-blue: #0ea5e9; --dark-blue: #1e293b; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--silver-bg); padding-bottom: 90px; direction: rtl; }
+        .header { background: var(--white); padding: 20px; text-align: center; font-weight: bold; border-bottom: 1px solid #e2e8f0; }
+        .plan-card { background: var(--white); margin: 15px; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; position: relative; overflow: hidden; }
+        .plan-card::before { content: 'VIP'; position: absolute; top: -10px; left: -10px; background: var(--sky-blue); color: white; padding: 20px 30px; transform: rotate(-45deg); font-weight: bold; }
+        .plan-header { text-align: center; margin-bottom: 15px; }
+        .plan-header h3 { font-size: 1.5rem; color: var(--dark-blue); }
+        .plan-details { display: flex; justify-content: space-around; background: #f8fafc; padding: 15px; border-radius: 12px; margin-bottom: 15px; }
+        .detail-item { text-align: center; }
+        .detail-item span { display: block; font-size: 0.8rem; color: #64748b; }
+        .detail-item b { font-size: 1.1rem; color: var(--sky-blue); }
+        .btn-buy { width: 100%; padding: 12px; background: var(--sky-blue); color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <header class="header">باقات روليكس الاستثمارية</header>
+    <main>
+        <div class="plan-card">
+            <div class="plan-header"><h3>المستوى 1</h3></div>
+            <div class="plan-details">
+                <div class="detail-item"><span>الإيداع</span><b>10$</b></div>
+                <div class="detail-item"><span>الربح اليومي</span><b>1.5$</b></div>
+            </div>
+            <button class="btn-buy" onclick="invest(1, 10)">تفعيل VIP 1</button>
+        </div>
+        <div class="plan-card">
+            <div class="plan-header"><h3>المستوى 2</h3></div>
+            <div class="plan-details">
+                <div class="detail-item"><span>الإيداع</span><b>50$</b></div>
+                <div class="detail-item"><span>الربح اليومي</span><b>8$</b></div>
+            </div>
+            <button class="btn-buy" onclick="invest(2, 50)">تفعيل VIP 2</button>
+        </div>
+    </main>
+    <nav class="bottom-nav" style="position: fixed; bottom: 0; width: 100%; display: flex; justify-content: space-around; background: white; padding: 15px; border-top: 1px solid #e2e8f0;">
+        <a href="index.html" style="text-decoration:none; color:#94a3b8;"><i class="fa-solid fa-house"></i></a>
+        <a href="invest.html" style="text-decoration:none; color:#0ea5e9;"><i class="fa-solid fa-gem"></i></a>
+        <a href="profile.html" style="text-decoration:none; color:#94a3b8;"><i class="fa-solid fa-user"></i></a>
+    </nav>
+    <script>
+        function invest(level, price) { alert("سيتم خصم " + price + "$ من رصيدك لتفعيل VIP " + level); }
+    </script>
+</body>
+</html>
