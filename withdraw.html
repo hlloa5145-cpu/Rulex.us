@@ -5,61 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>سحب الأرباح - ROLEX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { font-family: sans-serif; background: #f8fafc; padding: 20px; text-align: center; }
         .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
+        input { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
         .btn-withdraw { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .warning { color: #ef4444; font-size: 0.85rem; margin-top: 10px; }
     </style>
 </head>
 <body>
-    <h2>سحب الأرباح</h2>
     <div class="card">
-        <p>الرصيد المتاح للسحب (الأرباح فقط):</p>
-        <h3 id="withdrawable-balance" style="color: #10b981;">$0.00</h3>
+        <h2>سحب الأرباح</h2>
+        <p>الرصيد المتاح للسحب:</p>
+        <h3 id="withdrawable" style="color: #10b981;">$0.00</h3>
         
-        <input type="number" id="amount" placeholder="أدخل مبلغ السحب">
-        <input type="text" id="address" placeholder="عنوان محفظة USDT (TRC20)">
-        
-        <button class="btn-withdraw" onclick="handleWithdraw()">تأكيد السحب</button>
-        <p class="warning">* لا يمكن سحب مبالغ الاستثمار النشطة، فقط الأرباح المتراكمة.</p>
+        <input type="number" id="withdraw-amount" placeholder="أدخل المبلغ">
+        <input type="text" id="wallet-address" placeholder="عنوان USDT (TRC20)">
+        <button class="btn-withdraw" onclick="handleWithdraw()">إرسال طلب السحب</button>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        let maxWithdraw = 0;
+        let availableProfit = 0;
 
-        async function checkBalances() {
+        async function initWithdraw() {
             const { data: { user } } = await _supabase.auth.getUser();
             
-            // 1. جلب الرصيد الكلي
+            // حساب الأرباح فقط (الرصيد - رأس المال)
             const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
-            
-            // 2. جلب إجمالي رأس المال المستثمر
             const { data: invs } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).eq('status', 'active');
-            const totalInvested = invs.reduce((sum, item) => sum + (item.invested_amount || 0), 0);
-
-            // 3. الربح القابل للسحب = الرصيد الكلي - رأس المال
-            maxWithdraw = wallet.balance - totalInvested;
-            if(maxWithdraw < 0) maxWithdraw = 0;
-
-            document.getElementById('withdrawable-balance').innerText = `$${maxWithdraw.toFixed(2)}`;
+            
+            const totalInvested = invs.reduce((sum, i) => sum + i.invested_amount, 0);
+            availableProfit = wallet.balance - totalInvested;
+            
+            document.getElementById('withdrawable').innerText = `$${availableProfit.toFixed(2)}`;
         }
 
         async function handleWithdraw() {
-            const amount = parseFloat(document.getElementById('amount').value);
-            if (amount > maxWithdraw) {
-                return alert(`عذراً، يمكنك سحب الأرباح فقط ($${maxWithdraw.toFixed(2)}). رأس مالك مستثمر حالياً.`);
+            const amount = parseFloat(document.getElementById('withdraw-amount').value);
+            const address = document.getElementById('wallet-address').value;
+            const { data: { user } } = await _supabase.auth.getUser();
+
+            if (amount > availableProfit) return alert("لا يمكنك سحب رأس المال المستثمر");
+            if (!address) return alert("يرجى إدخال عنوان المحفظة");
+
+            // إرسال لجدول transactions
+            const { error } = await _supabase.from('transactions').insert([
+                { user_id: user.id, amount: amount, type: 'withdraw', status: 'pending', address: address }
+            ]);
+
+            if (!error) {
+                alert("تم تقديم طلب السحب للمراجعة ✅");
+                window.location.href = 'index.html';
             }
-            if (amount < 10) return alert("الحد الأدنى للسحب هو $10");
-
-            // تنفيذ عملية السحب في قاعدة البيانات...
-            alert("تم إرسال طلب السحب للمراجعة ✅");
         }
-
-        window.onload = checkBalances;
+        window.onload = initWithdraw;
     </script>
 </body>
 </html>
