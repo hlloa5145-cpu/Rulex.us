@@ -8,137 +8,65 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
         :root { --blue: #0ea5e9; --bg: #f8fafc; --dark: #1e293b; }
-        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
-        
-        .header { text-align: center; margin-bottom: 20px; }
-        .header h1 { color: var(--blue); margin: 0; font-size: 1.8rem; letter-spacing: 2px; }
-        .user-info { font-size: 0.8rem; color: #64748b; margin-top: 5px; }
-
-        /* كرت الرصيد المحدث */
-        .balance-card { 
-            background: var(--blue); 
-            border-radius: 25px; 
-            padding: 30px 20px; 
-            text-align: center; 
-            color: white; 
-            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
-            margin-bottom: 25px;
-        }
-        .balance-label { font-size: 0.9rem; opacity: 0.9; }
-        .balance-amount { font-size: 2.4rem; font-weight: bold; margin: 10px 0; }
-
-        /* أزرار الشحن والسحب */
+        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; overflow-x: hidden; }
+        .balance-card { background: var(--blue); border-radius: 25px; padding: 30px 20px; text-align: center; color: white; box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3); margin-bottom: 25px; }
+        .balance-amount { font-size: 2.4rem; font-weight: bold; }
         .action-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
-        .btn-action { 
-            flex: 1; 
-            background: white; 
-            padding: 20px; 
-            border-radius: 20px; 
-            text-align: center; 
-            text-decoration: none; 
-            color: var(--dark);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-            border: 1px solid #f1f5f9;
-            transition: 0.3s;
-        }
+        .btn-action { flex: 1; background: white; padding: 20px; border-radius: 20px; text-align: center; text-decoration: none; color: var(--dark); border: 1px solid #f1f5f9; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .btn-action i { display: block; font-size: 1.5rem; margin-bottom: 8px; color: var(--blue); }
-        .btn-action span { font-weight: bold; font-size: 0.9rem; }
+        
+        /* أيقونة تلجرام العائمة */
+        #tg-float { position: fixed; bottom: 100px; left: 20px; z-index: 9999; cursor: move; touch-action: none; }
+        .tg-btn { background: #229ED9; width: 60px; height: 60px; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 2px solid white; }
 
-        /* باقات الاستثمار */
-        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .section-title h2 { font-size: 1.1rem; color: var(--dark); }
-        .section-title a { font-size: 0.8rem; color: var(--blue); text-decoration: none; }
-
-        .plan-card {
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border: 1px solid #f1f5f9;
-        }
-        .plan-info h4 { margin: 0; color: var(--blue); font-size: 1rem; }
-        .plan-info p { margin: 5px 0 0; font-size: 0.8rem; color: #94a3b8; }
-        .plan-price { font-weight: bold; color: var(--dark); }
-
-        /* القائمة السفلية (Nav) */
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
         .nav a.active { color: var(--blue); font-weight: bold; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h1>ROLEX</h1>
-        <div class="user-info" id="user-email">جاري التحميل...</div>
-    </div>
-
+    <h1 style="text-align: center; color: var(--blue);">ROLEX</h1>
+    
     <div class="balance-card">
-        <div class="balance-label">إجمالي الرصيد (USDT)</div>
+        <div style="opacity: 0.9;">إجمالي الرصيد (USDT)</div>
         <div class="balance-amount" id="home-balance">$0.00</div>
     </div>
 
     <div class="action-buttons">
-        <a href="deposit.html" class="btn-action">
-            <i class="fa-solid fa-circle-down"></i>
-            <span>شحن</span>
-        </a>
-        <a href="withdraw.html" class="btn-action">
-            <i class="fa-solid fa-circle-up"></i>
-            <span>سحب</span>
-        </a>
+        <a href="deposit.html" class="btn-action"><i class="fa-solid fa-circle-down"></i><span>شحن</span></a>
+        <a href="withdraw.html" class="btn-action"><i class="fa-solid fa-circle-up"></i><span>سحب</span></a>
     </div>
 
-    <div class="section-title">
-        <h2>باقات الاستثمار المتاحة</h2>
-        <a href="invest.html">عرض الكل <i class="fa-solid fa-chevron-left"></i></a>
-    </div>
-
-    <div id="plans-container">
-        <div class="plan-card">
-            <div class="plan-info">
-                <h4>VIP 1 - المبتدئ</h4>
-                <p>ربح يومي: 5.00$</p>
-            </div>
-            <div class="plan-price">$100.00</div>
-        </div>
+    <div id="tg-float">
+        <a href="https://t.me/Btcun1995" target="_blank">
+            <div class="tg-btn"><i class="fa-brands fa-telegram" style="color: white; font-size: 30px;"></i></div>
+        </a>
     </div>
 
     <nav class="nav">
         <a href="index.html" class="active"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
         <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
-        <a href="team.html"><i class="fa-solid fa-users"></i><br>الفريق</a>
+        <a href="tasks.html"><i class="fa-solid fa-calendar-check"></i><br>المهام</a>
         <a href="profile.html"><i class="fa-solid fa-user"></i><br>الملف</a>
     </nav>
 
     <script src="auth.js"></script>
     <script>
         async function initHome() {
-            // 1. التحقق من المستخدم
             const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) return window.location.href = 'auth.html';
-
-            document.getElementById('user-email').innerText = user.email;
-
-            // 2. جلب الرصيد الحقيقي من جدول wallets
-            const { data: wallet, error } = await _supabase
-                .from('wallets')
-                .select('balance')
-                .eq('user_id', user.id)
-                .single();
-
-            if (wallet && !error) {
-                // تحديث الرقم في الواجهة ليطابق الـ 999 مليون الموجودة بملفك
-                document.getElementById('home-balance').innerText = `$${wallet.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
-            } else {
-                console.error("خطأ في جلب الرصيد:", error);
-            }
+            if (!user) return;
+            // جلب الرصيد من جدول wallets
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            if (wallet) document.getElementById('home-balance').innerText = `$${wallet.balance.toLocaleString()}`;
         }
+        
+        // كود تحريك أيقونة التلجرام
+        const tg = document.getElementById("tg-float");
+        let active = false, curX, curY, initX, initY, xOff = 0, yOff = 0;
+        tg.addEventListener("touchstart", (e) => { initX = e.touches[0].clientX - xOff; initY = e.touches[0].clientY - yOff; active = true; });
+        tg.addEventListener("touchmove", (e) => { if(active) { e.preventDefault(); curX = e.touches[0].clientX - initX; curY = e.touches[0].clientY - initY; xOff = curX; yOff = curY; tg.style.transform = `translate3d(${curX}px, ${curY}px, 0)`; }});
+        tg.addEventListener("touchend", () => active = false);
 
-        // تشغيل الدالة عند تحميل الصفحة
         window.onload = initHome;
     </script>
 </body>
