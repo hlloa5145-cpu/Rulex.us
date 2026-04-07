@@ -4,73 +4,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>الملف الشخصي - ROLEX</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --blue: #0ea5e9; --bg: #f8fafc; --dark: #1e293b; --red: #ef4444; }
-        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
-        .profile-header { background: var(--blue); border-radius: 25px; padding: 30px 20px; text-align: center; color: white; margin-bottom: 20px; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2); }
-        .balance-label { font-size: 0.9rem; opacity: 0.9; margin-bottom: 10px; display: block; }
-        .balance-amount { font-size: 2.2rem; font-weight: bold; }
-        .user-email { font-size: 0.85rem; margin-top: 10px; opacity: 0.8; }
+        :root { --blue: #0ea5e9; --red: #ef4444; --dark: #1e293b; }
+        body { background: #f8fafc; font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 80px; text-align: center; }
+        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .balance-card { background: var(--blue); color: white; padding: 30px; border-radius: 25px; }
+        .balance-title { font-size: 0.9rem; opacity: 0.9; }
+        .balance-amount { font-size: 2.2rem; font-weight: bold; margin: 10px 0; }
         
-        .card { background: white; border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); border: 1px solid #f1f5f9; }
-        .card h3 { margin-top: 0; font-size: 1rem; color: var(--dark); display: flex; align-items: center; gap: 10px; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; }
-        .uid-box { background: #f1f5f9; padding: 10px; border-radius: 10px; font-size: 0.75rem; word-break: break-all; color: #64748b; text-align: center; line-height: 1.4; }
+        .invest-box { border-right: 4px solid var(--red); text-align: right; padding-right: 15px; }
+        .invest-amount { color: var(--red); font-size: 1.5rem; font-weight: bold; }
         
-        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; background: #f1f5f9; color: #64748b; }
-        .btn-action { width: 100%; padding: 14px; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: 10px; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-blue { background: var(--blue); color: white; }
-        .btn-red { background: var(--red); color: white; }
+        .btn-outline-red { background: var(--red); color: white; }
         
-        input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ddd; margin-top: 10px; box-sizing: border-box; }
-        
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
-        .nav a.active { color: var(--blue); font-weight: bold; }
+        .nav a.active { color: var(--blue); }
     </style>
 </head>
 <body>
 
-    <div class="profile-header">
-        <span class="balance-label">إجمالي الرصيد المتوفر</span>
-        <div class="balance-amount" id="user-balance">$0.00</div>
-        <div class="user-email" id="user-email">...</div>
-    </div>
-
-    <div class="card">
-        <h3><i class="fa-solid fa-wallet"></i> بيانات الحساب</h3>
-        <div class="uid-box" id="user-uid">جاري التحميل...</div>
-        <button class="btn-action btn-blue" style="font-size: 0.8rem;" onclick="copyUID()">نسخ رقم المحفظة (UID)</button>
-    </div>
-
-    <div class="card">
-        <div class="info-row">
-            <h3><i class="fa-solid fa-id-card"></i> توثيق الهوية</h3>
-            <span class="status-badge" id="kyc-status">غير موثق</span>
+    <div class="card balance-card">
+        <div class="balance-title">إجمالي الرصيد (USDT)</div>
+        <div class="balance-amount" id="total-balance-display">$0.00</div>
+        <div style="display: flex; justify-content: space-around; margin-top: 20px;">
+            <div onclick="location.href='withdraw.html'"><i class="fa-solid fa-arrow-up"></i><br>سحب</div>
+            <div onclick="location.href='deposit.html'"><i class="fa-solid fa-arrow-down"></i><br>شحن</div>
         </div>
-        <p style="font-size: 0.8rem; color: #64748b;">التوثيق اختياري لزيادة أمان الحساب.</p>
-        <button class="btn-action btn-blue" onclick="location.href='verify.html'">رفع صورة الهوية</button>
     </div>
 
-    <div class="card" style="border-right: 5px solid var(--red);">
-        <h3><i class="fa-solid fa-chart-line" style="color: var(--red);"></i> استثمارات VIP</h3>
-        <div class="info-row">
-            <span>المبلغ المستثمر:</span>
-            <strong id="invested-amount" style="color: var(--red); font-size: 1.2rem;">$0.00</strong>
-        </div>
-        <button class="btn-action btn-red" onclick="closeInvestment()">إغلاق الاستثمار وسحب رأس المال</button>
-        <small style="color: #94a3b8; display: block; margin-top: 8px;">* سيتم خصم 20% غرامة عند السحب المبكر.</small>
+    <div class="card invest-box">
+        <h3 style="margin-top: 0;"><i class="fa-solid fa-chart-line"></i> استثمارات VIP</h3>
+        <p>المبلغ المستثمر حالياً:</p>
+        <div class="invest-amount" id="invested-display">$0.00</div>
+        <button class="btn btn-outline-red" onclick="closeInvestment()">إغلاق الاستثمار وسحب رأس المال</button>
+        <p style="font-size: 0.7rem; color: #94a3b8; margin-top: 10px;">* سيتم خصم 20% غرامة عند السحب المبكر.</p>
     </div>
 
     <div class="card">
         <h3><i class="fa-solid fa-lock"></i> أمان الحساب</h3>
-        <input type="password" id="new-password" placeholder="كلمة المرور الجديدة">
-        <button class="btn-action btn-blue" onclick="updatePassword()">تحديث كلمة المرور</button>
+        <input type="password" id="new-pass" placeholder="كلمة المرور الجديدة" style="width:90%; padding:12px; border-radius:10px; border:1px solid #ddd;">
+        <button class="btn btn-blue" onclick="updatePassword()">تحديث كلمة المرور</button>
     </div>
-
-    <button class="btn-action" style="background: #f1f5f9; color: var(--dark); margin-bottom: 20px;" onclick="handleLogout()">تسجيل الخروج</button>
 
     <nav class="nav">
         <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
@@ -81,62 +60,60 @@
 
     <script src="auth.js"></script>
     <script>
-        async function loadProfile() {
+        let currentUserId = null;
+        let walletBalance = 0;
+        let totalInvested = 0;
+
+        async function loadProfileData() {
             const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) return window.location.href = 'auth.html';
+            if (!user) return window.location.href = 'login.html';
+            currentUserId = user.id;
 
-            document.getElementById('user-email').innerText = user.email;
-            document.getElementById('user-uid').innerText = user.id;
-
-            // 1. جلب الرصيد من جدول wallets
-            const { data: wallet } = await _supabase.from('wallets').select('*').eq('user_id', user.id).single();
+            // 1. جلب رصيد المحفظة
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
             if (wallet) {
-                document.getElementById('user-balance').innerText = `$${wallet.balance.toFixed(2)}`;
-                if (wallet.kyc_status === 'verified') {
-                    const badge = document.getElementById('kyc-status');
-                    badge.innerText = "موثق ✅";
-                    badge.style.background = "#dcfce7";
-                    badge.style.color = "#166534";
-                }
+                walletBalance = wallet.balance;
+                document.getElementById('total-balance-display').innerText = `$${walletBalance.toLocaleString()}`;
             }
 
-            // 2. جلب مبلغ الاستثمار الحقيقي
-            const { data: invData } = await _supabase.from('investments')
+            // 2. جلب مجموع الاستثمارات النشطة
+            const { data: invs } = await _supabase.from('investments')
                 .select('invested_amount')
                 .eq('user_id', user.id)
                 .eq('status', 'active');
 
-            if (invData && invData.length > 0) {
-                const total = invData.reduce((sum, item) => sum + (item.invested_amount || 0), 0);
-                document.getElementById('invested-amount').innerText = `$${total.toFixed(2)}`;
+            if (invs) {
+                totalInvested = invs.reduce((sum, i) => sum + i.invested_amount, 0);
+                document.getElementById('invested-display').innerText = `$${totalInvested.toLocaleString()}`;
+            }
+        }
+
+        // دالة إغلاق الاستثمار (خصم 20% وإرجاع الباقي للمحفظة)
+        async function closeInvestment() {
+            if (totalInvested <= 0) return alert("ليس لديك استثمارات نشطة لإغلاقها");
+            
+            if (confirm("هل أنت متأكد؟ سيتم خصم 20% ($" + (totalInvested * 0.2) + ") كغرامة إغلاق مبكر.")) {
+                const refundAmount = totalInvested * 0.8; // إرجاع 80% فقط
+
+                // أ. تحديث حالة الاستثمارات إلى مغلقة
+                await _supabase.from('investments').update({ status: 'closed' }).eq('user_id', currentUserId).eq('status', 'active');
+
+                // ب. إضافة المبلغ المتبقي لمحفظة المستخدم
+                await _supabase.from('wallets').update({ balance: walletBalance + refundAmount }).eq('user_id', currentUserId);
+
+                alert("تم إغلاق الاستثمار وإعادة 80% من رأس المال لمحفظتك ✅");
+                location.reload();
             }
         }
 
         async function updatePassword() {
-            const newPass = document.getElementById('new-password').value;
-            if (newPass.length < 6) return alert("كلمة المرور قصيرة جداً");
-            
+            const newPass = document.getElementById('new-pass').value;
+            if (newPass.length < 6) return alert("كلمة المرور يجب أن تكون 6 أحرف على الأقل");
             const { error } = await _supabase.auth.updateUser({ password: newPass });
-            if (!error) {
-                alert("✅ تم التحديث بنجاح!");
-                document.getElementById('new-password').value = "";
-            } else {
-                alert(error.message);
-            }
+            if (!error) alert("تم تحديث كلمة المرور بنجاح ✅");
         }
 
-        function copyUID() {
-            const uid = document.getElementById('user-uid').innerText;
-            navigator.clipboard.writeText(uid);
-            alert("تم نسخ معرف المحفظة بنجاح");
-        }
-
-        async function handleLogout() {
-            await _supabase.auth.signOut();
-            window.location.href = 'auth.html';
-        }
-
-        window.onload = loadProfile;
+        window.onload = loadProfileData;
     </script>
 </body>
 </html>
