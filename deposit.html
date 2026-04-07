@@ -1,46 +1,38 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>شحن رصيد - ROLEX</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        body { font-family: sans-serif; background: #f8fafc; padding: 20px; text-align: center; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-        input { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
-        .btn-deposit { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>شحن رصيد (Deposit)</h2>
-        <p>أدخل المبلغ الذي قمت بتحويله:</p>
-        <input type="number" id="deposit-amount" placeholder="المبلغ بالدولار $">
-        <button class="btn-deposit" onclick="handleDeposit()">تأكيد الشحن</button>
+<div class="card">
+    <h3>شحن رصيد USDT (TRC20)</h3>
+    <div style="background:#e0f2fe; padding:15px; border-radius:10px; margin-bottom:15px;">
+        <p>عنوان المحفظة للتحويل:</p>
+        <b id="wallet-addr">TXXXXXXX_عنوان_محفظتك_هنا</b>
+        <button onclick="navigator.clipboard.writeText('TA3uvkYmFmWhJ5DePkgWN8y1rVt6sxbpZB')">نسخ</button>
     </div>
+    
+    <input type="number" id="amt" placeholder="المبلغ المحول $">
+    <p>ارفع صورة إثبات التحويل (Screenshot):</p>
+    <input type="file" id="file-proof" accept="image/*">
+    
+    <button onclick="submitOrder()" style="background:#0ea5e9; color:white; width:100%; padding:15px; border:none; border-radius:10px; margin-top:10px;">تأكيد الإرسال</button>
+</div>
 
-    <script src="auth.js"></script>
-    <script>
-        async function handleDeposit() {
-            const amount = parseFloat(document.getElementById('deposit-amount').value);
-            const { data: { user } } = await _supabase.auth.getUser();
+<script src="auth.js"></script>
+<script>
+    async function submitOrder() {
+        const amt = document.getElementById('amt').value;
+        const file = document.getElementById('file-proof').files[0];
+        const { data: { user } } = await _supabase.auth.getUser();
 
-            if (!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح");
+        if(!amt || !file) return alert("اكمل البيانات وارفع الصورة");
 
-            // إرسال الطلب لجدول transactions ليظهر في الإدارة
-            const { error } = await _supabase.from('transactions').insert([
-                { user_id: user.id, amount: amount, type: 'deposit', status: 'pending' }
-            ]);
+        // رفع الصورة للمخزن (Storage)
+        const path = `proofs/${user.id}_${Date.now()}.png`;
+        await _supabase.storage.from('images').upload(path, file);
+        const { data: url } = _supabase.storage.from('images').getPublicUrl(path);
 
-            if (!error) {
-                alert("تم إرسال الطلب للإدارة بنجاح ✅");
-                window.location.href = 'index.html';
-            } else {
-                alert("خطأ في الإرسال: " + error.message);
-            }
-        }
-    </script>
-</body>
-</html>
+        // تسجيل المعاملة في الجدول
+        await _supabase.from('transactions').insert([{
+            user_id: user.id, amount: parseFloat(amt), type: 'deposit', 
+            status: 'pending', image_url: url.publicUrl 
+        }]);
+
+        alert("تم الإرسال، انتظر موافقة الإدارة ✅");
+    }
+</script>
