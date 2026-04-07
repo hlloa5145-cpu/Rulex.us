@@ -3,74 +3,139 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>المهام اليومية</title>
+    <title>المهام اليومية - ROLEX</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #f8fafc; font-family: sans-serif; text-align: center; padding: 20px; }
-        .timer-box { font-size: 2rem; color: #0ea5e9; background: white; padding: 20px; border-radius: 20px; margin: 20px auto; max-width: 300px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .btn-claim { padding: 15px 40px; border-radius: 15px; border: none; background: #0ea5e9; color: white; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
-        .disabled { background: #cbd5e1; cursor: not-allowed; }
+        body { background: #f8fafc; font-family: sans-serif; text-align: center; padding: 20px; padding-bottom: 80px; }
+        .timer-box { font-size: 2.2rem; font-weight: bold; color: #0ea5e9; background: white; padding: 30px; border-radius: 25px; margin: 20px auto; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 2px solid #e0f2fe; }
+        .btn-claim { width: 100%; max-width: 320px; padding: 18px; border-radius: 15px; border: none; background: #0ea5e9; color: white; font-weight: bold; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
+        .disabled { background: #cbd5e1 !important; cursor: not-allowed; opacity: 0.7; }
+        .info-text { color: #64748b; font-size: 0.9rem; margin-top: 10px; }
+
+        /* القائمة السفلية */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
+        .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
+        .nav a.active { color: #0ea5e9; font-weight: bold; }
     </style>
 </head>
 <body>
-    <h2>استلام الأرباح اليومية</h2>
+    <div style="margin-top: 40px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #22c55e;"></i>
+        <h2>استلام الأرباح اليومية</h2>
+        <p class="info-text" id="plan-info">جاري التحقق من خطة الاستثمار...</p>
+    </div>
+
     <div class="timer-box" id="timer">00:00:00</div>
-    <button id="claim-btn" class="btn-claim disabled" onclick="claimReward()" disabled>استلام الأرباح</button>
+    
+    <button id="claim-btn" class="btn-claim disabled" onclick="claimReward()" disabled>
+        <i class="fa-solid fa-hand-holding-dollar"></i> استلام الأرباح
+    </button>
+
+    <nav class="nav">
+        <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
+        <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
+        <a href="tasks.html" class="active"><i class="fa-solid fa-calendar-check"></i><br>المهام</a>
+        <a href="profile.html"><i class="fa-solid fa-user"></i><br>الملف</a>
+    </nav>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="auth.js"></script>
     <script>
+        let currentDailyProfit = 0;
+
         async function checkStatus() {
             const { data: { user } } = await _supabase.auth.getUser();
-            const { data: inv } = await _supabase.from('investments').select('*').eq('user_id', user.id).single();
-            const { data: task } = await _supabase.from('daily_tasks').select('*').eq('user_id', user.id).single();
+            if(!user) return window.location.href = 'auth.html';
 
-            if (!inv || inv.invested_amount <= 0) {
+            // 1. جلب الاستثمار (تعديل أسماء الأعمدة لتطابق صورك)
+            const { data: inv, error: invErr } = await _supabase
+                .from('investments')
+                .select('*')
+                .eq('user_id', user.id)
+                .eq('status', 'active') // لازم يكون نشط
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+
+            if (invErr || !inv) {
                 document.getElementById('timer').innerText = "لا يوجد استثمار";
+                document.getElementById('plan-info').innerText = "يرجى تفعيل باقة VIP أولاً";
                 return;
             }
 
-            const lastClaim = task ? new Date(task.last_claim) : new Date(0);
-            const now = new Date();
-            const diff = (now - lastClaim) / (1000 * 60 * 60);
+            // تخزين الربح اليومي المسجل في الجدول
+            currentDailyProfit = inv.daily_profit || (inv.plan_amount * 0.02);
+            document.getElementById('plan-info').innerText = `خطة ${inv.plan_name || 'VIP'} نشطة - ربحك: $${currentDailyProfit}`;
 
-            if (diff >= 24) {
-                const btn = document.getElementById('claim-btn');
-                btn.classList.remove('disabled');
-                btn.disabled = false;
-                document.getElementById('timer').innerText = "جاهز الآن!";
+            // 2. جلب آخر موعد استلام
+            const { data: task } = await _supabase.from('daily_tasks').select('*').eq('user_id', user.id).single();
+
+            if (!task) {
+                // إذا لم يستلم أبداً، نفتح الزر فوراً
+                enableClaimButton();
             } else {
-                startTimer(24 - diff);
+                const lastClaim = new Date(task.last_claim);
+                const now = new Date();
+                const diffMs = now - lastClaim;
+                const diffHours = diffMs / (1000 * 60 * 60);
+
+                if (diffHours >= 24) {
+                    enableClaimButton();
+                } else {
+                    startTimer(24 - diffHours);
+                }
             }
+        }
+
+        function enableClaimButton() {
+            const btn = document.getElementById('claim-btn');
+            btn.classList.remove('disabled');
+            btn.disabled = false;
+            document.getElementById('timer').innerText = "جاهز الآن!";
+            document.getElementById('timer').style.color = "#22c55e";
         }
 
         async function claimReward() {
             const { data: { user } } = await _supabase.auth.getUser();
-            const { data: inv } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).single();
+            
+            // جلب الرصيد الحالي
             const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
 
-            const dailyProfit = inv.invested_amount * 0.02; // ربح 2%
-            
-            // تحديث الوقت وإضافة المال
-            await _supabase.from('daily_tasks').upsert({ user_id: user.id, last_claim: new Date().toISOString() });
-            await _supabase.from('wallets').update({ balance: wallet.balance + dailyProfit }).eq('user_id', user.id);
+            // تحديث الوقت (Upsert عشان إذا ما في سطر يسوي واحد جديد)
+            await _supabase.from('daily_tasks').upsert({ 
+                user_id: user.id, 
+                last_claim: new Date().toISOString() 
+            }, { onConflict: 'user_id' });
 
-            alert(`✅ مبروك! استلمت $${dailyProfit}`);
+            // إضافة الأرباح للمحفظة
+            const newBalance = (wallet.balance || 0) + currentDailyProfit;
+            await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', user.id);
+
+            alert(`✅ مبروك! تم إضافة $${currentDailyProfit} إلى رصيدك.`);
             location.reload();
         }
 
         function startTimer(hours) {
-            let sec = Math.floor(hours * 3600);
-            const timer = document.getElementById('timer');
-            const intr = setInterval(() => {
-                let h = Math.floor(sec / 3600).toString().padStart(2, '0');
-                let m = Math.floor((sec % 3600) / 60).toString().padStart(2, '0');
-                let s = (sec % 60).toString().padStart(2, '0');
-                timer.innerText = `${h}:${m}:${s}`;
-                if (sec <= 0) { clearInterval(intr); location.reload(); }
-                sec--;
+            let totalSeconds = Math.floor(hours * 3600);
+            const timerDisplay = document.getElementById('timer');
+            
+            const countdown = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(countdown);
+                    location.reload();
+                    return;
+                }
+                
+                let h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
+                let m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
+                let s = (totalSeconds % 60).toString().padStart(2, '0');
+                
+                timerDisplay.innerText = `${h}:${m}:${s}`;
+                totalSeconds--;
             }, 1000);
         }
-        checkStatus();
+
+        window.onload = checkStatus;
     </script>
 </body>
 </html>
