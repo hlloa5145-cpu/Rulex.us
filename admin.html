@@ -2,70 +2,145 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>التحكم الكامل - ROLEX</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة التحكم الاحترافية - ROLEX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
-        .section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; color: white; }
-        .btn-green { background: #10b981; } .btn-red { background: #ef4444; }
-        img.proof { width: 50px; cursor: pointer; border-radius: 5px; }
+        :root { --primary: #1e293b; --blue: #0ea5e9; --green: #10b981; --red: #ef4444; }
+        body { font-family: sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .stat-item { background: var(--primary); color: white; padding: 20px; border-radius: 12px; text-align: center; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; font-size: 0.9rem; }
+        th { background: #f8fafc; }
+        .btn { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-green { background: var(--green); } .btn-red { background: var(--red); } .btn-blue { background: var(--blue); }
+        .badge { padding: 4px 8px; border-radius: 5px; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <div class="section">
-        <h2>إدارة طلبات الشحن والسحب</h2>
-        <table id="trans-table">
+
+    <h1><i class="fa-solid fa-gauge"></i> لوحة التحكم الإدارية</h1>
+
+    <div class="stats-grid">
+        <div class="stat-item">
+            <div id="user-count">0</div>
+            <small>إجمالي المستخدمين</small>
+        </div>
+        <div class="stat-item" style="background: var(--blue);">
+            <div id="active-invest-count">0</div>
+            <small>استثمارات نشطة</small>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-envelope-open-text"></i> الطلبات المعلقة (شحن / سحب / هوية)</h3>
+        <table id="requests-table">
             <thead>
                 <tr>
                     <th>المستخدم</th>
                     <th>النوع</th>
-                    <th>المبلغ</th>
+                    <th>المبلغ / التفاصيل</th>
                     <th>الإثبات</th>
                     <th>إجراء</th>
                 </tr>
             </thead>
-            <tbody id="trans-body"></tbody>
+            <tbody id="requests-body"></tbody>
+        </table>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-users-gear"></i> إدارة المستخدمين والاستثمارات</h3>
+        <table id="users-table">
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>الاستثمار الحالي</th>
+                    <th>الرصيد</th>
+                    <th>الحالة</th>
+                    <th>التحكم</th>
+                </tr>
+            </thead>
+            <tbody id="users-body"></tbody>
         </table>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        async function loadRequests() {
-            const { data: list } = await _supabase.from('transactions').select('*').eq('status', 'pending');
-            const tbody = document.getElementById('trans-body');
-            tbody.innerHTML = list.map(item => `
+        async function loadAdminData() {
+            const { data: users } = await _supabase.from('profiles').select('*');
+            const { data: wallets } = await _supabase.from('wallets').select('*');
+            const { data: investments } = await _supabase.from('investments').select('*').eq('status', 'active');
+            const { data: trans } = await _supabase.from('transactions').select('*').eq('status', 'pending');
+
+            // تحديث الإحصائيات
+            document.getElementById('user-count').innerText = users.length;
+            document.getElementById('active-invest-count').innerText = investments.length;
+
+            // ملء جدول الطلبات (شحن، سحب، هوية)
+            const reqBody = document.getElementById('requests-body');
+            reqBody.innerHTML = trans.map(r => `
                 <tr>
-                    <td>${item.user_id.substring(0,8)}...</td>
-                    <td>${item.type === 'deposit' ? 'شحن' : 'سحب'}</td>
-                    <td>$${item.amount}</td>
-                    <td>${item.image_url ? `<img src="${item.image_url}" class="proof" onclick="window.open(this.src)">` : 'لا يوجد'}</td>
+                    <td>${r.user_id.substring(0,8)}</td>
+                    <td><span class="badge">${r.type === 'deposit' ? 'شحن' : r.type === 'withdraw' ? 'سحب' : 'تأكيد هوية'}</span></td>
+                    <td>${r.amount ? '$'+r.amount : 'بيانات هوية'}</td>
+                    <td>${r.image_url ? `<button class="btn btn-blue" onclick="window.open('${r.image_url}')">عرض</button>` : '-'}</td>
                     <td>
-                        <button class="btn btn-green" onclick="approve('${item.id}', '${item.user_id}', ${item.amount}, '${item.type}')">موافقة</button>
-                        <button class="btn btn-red" onclick="reject('${item.id}')">رفض</button>
+                        <button class="btn btn-green" onclick="approveRequest('${r.id}', '${r.user_id}', ${r.amount}, '${r.type}')">موافقة</button>
+                        <button class="btn btn-red" onclick="rejectRequest('${r.id}')">رفض</button>
                     </td>
                 </tr>
             `).join('');
+
+            // ملء جدول المستخدمين (الاستثمار والحظر)
+            const userBody = document.getElementById('users-body');
+            userBody.innerHTML = users.map(u => {
+                const userWallet = wallets.find(w => w.user_id === u.id);
+                const userInv = investments.find(i => i.user_id === u.id);
+                return `
+                <tr>
+                    <td>${u.id.substring(0,8)}</td>
+                    <td style="color:var(--blue)">${userInv ? userInv.plan_name : 'لا يوجد'}</td>
+                    <td>$${userWallet ? userWallet.balance : 0}</td>
+                    <td>${u.is_banned ? '<span class="badge" style="background:red; color:white;">محظور</span>' : 'نشط'}</td>
+                    <td>
+                        <button class="btn btn-blue" onclick="adjustBalance('${u.id}')">+/- رصيد</button>
+                        <button class="btn ${u.is_banned ? 'btn-green' : 'btn-red'}" onclick="toggleBan('${u.id}', ${u.is_banned})">
+                            ${u.is_banned ? 'فك حظر' : 'حظر'}
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
         }
 
-        async function approve(tid, uid, amt, type) {
-            // 1. تحديث الحالة
-            await _supabase.from('transactions').update({ status: 'approved' }).eq('id', tid);
-            // 2. إذا كان شحن، نزيد الرصيد في wallets
+        // دالة الموافقة الشاملة
+        async function approveRequest(rid, uid, amt, type) {
+            await _supabase.from('transactions').update({ status: 'approved' }).eq('id', rid);
             if (type === 'deposit') {
                 const { data: w } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
                 await _supabase.from('wallets').update({ balance: w.balance + amt }).eq('user_id', uid);
             }
-            alert("تمت العملية بنجاح ✅"); loadRequests();
+            alert("تمت الموافقة ✅"); location.reload();
         }
 
-        async function reject(tid) {
-            await _supabase.from('transactions').update({ status: 'rejected' }).eq('id', tid);
-            loadRequests();
+        // دالة التحكم في الرصيد (إضافة أو خصم)
+        async function adjustBalance(uid) {
+            const amt = parseFloat(prompt("أدخل المبلغ (استخدم - للخصم، مثال: -50)"));
+            if (isNaN(amt)) return;
+            const { data: w } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
+            await _supabase.from('wallets').update({ balance: w.balance + amt }).eq('user_id', uid);
+            alert("تم تحديث الرصيد بنجاح ✅"); location.reload();
         }
-        window.onload = loadRequests;
+
+        // دالة الحظر وفك الحظر
+        async function toggleBan(uid, currentStatus) {
+            await _supabase.from('profiles').update({ is_banned: !currentStatus }).eq('id', uid);
+            alert(currentStatus ? "تم فك الحظر ✅" : "تم الحظر ❌"); location.reload();
+        }
+
+        window.onload = loadAdminData;
     </script>
 </body>
 </html>
