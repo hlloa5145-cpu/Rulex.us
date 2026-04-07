@@ -3,135 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - الرئيسية</title>
+    <title>الرئيسية - ROLEX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --main-blue: #0ea5e9; --bg: #f8fafc; --card: #ffffff; --text: #1e293b; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
+        :root { --blue: #0ea5e9; --bg: #f8fafc; --dark: #1e293b; }
+        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
         
-        /* الهيدر */
-        .header { background: white; padding: 20px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        .header h1 { color: var(--main-blue); font-size: 1.8rem; letter-spacing: 2px; font-weight: 900; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { color: var(--blue); margin: 0; font-size: 1.8rem; letter-spacing: 2px; }
         .user-info { font-size: 0.8rem; color: #64748b; margin-top: 5px; }
 
-        /* كرت الرصيد */
-        .balance-card { background: linear-gradient(135deg, #0ea5e9, #0284c7); margin: 20px; padding: 30px; border-radius: 25px; color: white; text-align: center; box-shadow: 0 10px 20px rgba(14, 165, 233, 0.2); }
-        .balance-card p { font-size: 0.9rem; opacity: 0.9; }
-        .balance-card h2 { font-size: 2.8rem; margin: 10px 0; font-weight: 800; }
+        /* كرت الرصيد المحدث */
+        .balance-card { 
+            background: var(--blue); 
+            border-radius: 25px; 
+            padding: 30px 20px; 
+            text-align: center; 
+            color: white; 
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.3);
+            margin-bottom: 25px;
+        }
+        .balance-label { font-size: 0.9rem; opacity: 0.9; }
+        .balance-amount { font-size: 2.4rem; font-weight: bold; margin: 10px 0; }
 
-        /* أزرار العمليات */
-        .quick-actions { display: flex; justify-content: space-around; margin: 0 20px 25px; gap: 15px; }
-        .action-btn { flex: 1; background: white; padding: 15px; border-radius: 18px; text-decoration: none; color: var(--text); font-weight: bold; border: 1px solid #e2e8f0; display: flex; flex-direction: column; align-items: center; gap: 8px; transition: 0.3s; }
-        .action-btn i { color: var(--main-blue); font-size: 1.4rem; }
-        .action-btn:active { transform: scale(0.95); background: #f1f5f9; }
+        /* أزرار الشحن والسحب */
+        .action-buttons { display: flex; gap: 15px; margin-bottom: 30px; }
+        .btn-action { 
+            flex: 1; 
+            background: white; 
+            padding: 20px; 
+            border-radius: 20px; 
+            text-align: center; 
+            text-decoration: none; 
+            color: var(--dark);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid #f1f5f9;
+            transition: 0.3s;
+        }
+        .btn-action i { display: block; font-size: 1.5rem; margin-bottom: 8px; color: var(--blue); }
+        .btn-action span { font-weight: bold; font-size: 0.9rem; }
 
-        /* قسم الاستثمار */
-        .section-header { margin: 0 20px 15px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
-        .section-header a { color: var(--main-blue); text-decoration: none; font-size: 0.85rem; }
+        /* باقات الاستثمار */
+        .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .section-title h2 { font-size: 1.1rem; color: var(--dark); }
+        .section-title a { font-size: 0.8rem; color: var(--blue); text-decoration: none; }
 
-        .vip-list { padding: 0 20px; }
-        .vip-item { background: white; padding: 20px; border-radius: 20px; border: 1px solid #e2e8f0; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: inherit; }
-        .vip-info h4 { color: var(--main-blue); margin-bottom: 5px; font-size: 1.1rem; }
-        .vip-info p { font-size: 0.85rem; color: #64748b; }
-        .vip-price { text-align: left; font-weight: 800; color: var(--text); }
+        .plan-card {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            border: 1px solid #f1f5f9;
+        }
+        .plan-info h4 { margin: 0; color: var(--blue); font-size: 1rem; }
+        .plan-info p { margin: 5px 0 0; font-size: 0.8rem; color: #94a3b8; }
+        .plan-price { font-weight: bold; color: var(--dark); }
 
-        /* الملاحة السفلية */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid #e2e8f0; box-shadow: 0 -2px 10px rgba(0,0,0,0.03); }
-        .nav-item { color: #94a3b8; text-decoration: none; text-align: center; font-size: 0.7rem; display: flex; flex-direction: column; gap: 4px; }
-        .nav-item i { font-size: 1.3rem; }
-        .nav-item.active { color: var(--main-blue); }
+        /* القائمة السفلية (Nav) */
+        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
+        .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
+        .nav a.active { color: var(--blue); font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1>ROLEX</h1>
-        <div class="user-info" id="user-email">جاري تحميل البيانات...</div>
+        <div class="user-info" id="user-email">جاري التحميل...</div>
     </div>
 
     <div class="balance-card">
-        <p>إجمالي الرصيد (USDT)</p>
-        <h2 id="user-balance">$0.00</h2>
+        <div class="balance-label">إجمالي الرصيد (USDT)</div>
+        <div class="balance-amount" id="home-balance">$0.00</div>
     </div>
 
-    <div class="quick-actions">
-        <a href="deposit.html" class="action-btn">
-            <i class="fa-solid fa-circle-arrow-down"></i>
+    <div class="action-buttons">
+        <a href="deposit.html" class="btn-action">
+            <i class="fa-solid fa-circle-down"></i>
             <span>شحن</span>
         </a>
-        <a href="withdraw.html" class="action-btn">
-            <i class="fa-solid fa-circle-arrow-up"></i>
+        <a href="withdraw.html" class="btn-action">
+            <i class="fa-solid fa-circle-up"></i>
             <span>سحب</span>
         </a>
     </div>
 
-    <div class="section-header">
-        <span>باقات الاستثمار المتاحة</span>
+    <div class="section-title">
+        <h2>باقات الاستثمار المتاحة</h2>
         <a href="invest.html">عرض الكل <i class="fa-solid fa-chevron-left"></i></a>
     </div>
 
-    <div class="vip-list">
-        <a href="invest.html" class="vip-item">
-            <div class="vip-info">
+    <div id="plans-container">
+        <div class="plan-card">
+            <div class="plan-info">
                 <h4>VIP 1 - المبتدئ</h4>
-                <p>ربح يومي: $5.00</p>
+                <p>ربح يومي: 5.00$</p>
             </div>
-            <div class="vip-price">$100.00</div>
-        </a>
-
-        <a href="invest.html" class="vip-item">
-            <div class="vip-info">
-                <h4>VIP 2 - الاحترافي</h4>
-                <p>ربح يومي: $28.00</p>
-            </div>
-            <div class="vip-price">$500.00</div>
-        </a>
+            <div class="plan-price">$100.00</div>
+        </div>
     </div>
 
-    <nav class="bottom-nav">
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <a href="invest.html" class="nav-item"><i class="fa-solid fa-gem"></i><span>استثمار</span></a>
-        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
+    <nav class="nav">
+        <a href="index.html" class="active"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
+        <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
+        <a href="team.html"><i class="fa-solid fa-users"></i><br>الفريق</a>
+        <a href="profile.html"><i class="fa-solid fa-user"></i><br>الملف</a>
     </nav>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="auth.js"></script>
     <script>
-        // إعدادات قاعدة البيانات الخاصة بك
-        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        async function syncData() {
-            // 1. الحصول على المستخدم الحالي
+        async function initHome() {
+            // 1. التحقق من المستخدم
             const { data: { user } } = await _supabase.auth.getUser();
-
-            if (!user) {
-                // إذا لم يسجل دخول، ارجعه لصفحة التسجيل
-                window.location.href = 'auth.html';
-                return;
-            }
+            if (!user) return window.location.href = 'auth.html';
 
             document.getElementById('user-email').innerText = user.email;
 
-            // 2. جلب الرصيد من جدول wallets
-            // ملاحظة: تأكد أن الجدول اسمه wallets وبه عمود balance وعمود user_email
+            // 2. جلب الرصيد الحقيقي من جدول wallets
             const { data: wallet, error } = await _supabase
                 .from('wallets')
                 .select('balance')
-                .eq('user_email', user.email)
+                .eq('user_id', user.id)
                 .single();
 
-            if (wallet) {
-                document.getElementById('user-balance').innerText = `$${wallet.balance.toFixed(2)}`;
+            if (wallet && !error) {
+                // تحديث الرقم في الواجهة ليطابق الـ 999 مليون الموجودة بملفك
+                document.getElementById('home-balance').innerText = `$${wallet.balance.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
             } else {
-                console.log("لم يتم العثور على محفظة لهذا الإيميل");
+                console.error("خطأ في جلب الرصيد:", error);
             }
         }
 
-        // تشغيل الوظيفة عند تحميل الصفحة
-        window.onload = syncData;
+        // تشغيل الدالة عند تحميل الصفحة
+        window.onload = initHome;
     </script>
 </body>
 </html>
