@@ -3,20 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>باقات الاستثمار - ROLEX</title>
+    <title>خطط الاستثمار - ROLEX</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
         :root { --blue: #0ea5e9; --bg: #f8fafc; --dark: #1e293b; }
-        body { background: var(--bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
+        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 90px; }
         .header-title { text-align: center; color: var(--dark); margin-bottom: 25px; font-weight: bold; }
         
-        /* تصميم الكروت */
         .plans-grid { display: grid; gap: 20px; max-width: 500px; margin: auto; }
         .plan-card { 
             background: white; border-radius: 20px; padding: 25px; 
             text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
-            border: 1px solid #e2e8f0; transition: 0.3s;
+            border: 1px solid #e2e8f0; 
         }
         .plan-name { font-weight: bold; color: var(--dark); font-size: 1.1rem; margin-bottom: 10px; }
         .plan-price { font-size: 2rem; color: var(--blue); font-weight: bold; margin-bottom: 8px; }
@@ -29,16 +28,14 @@
         }
         .buy-btn:active { transform: scale(0.96); opacity: 0.9; }
 
-        /* القائمة السفلية */
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; z-index: 1000; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
         .nav a.active { color: var(--blue); font-weight: bold; }
-        .nav i { font-size: 1.2rem; margin-bottom: 4px; }
     </style>
 </head>
 <body>
 
-    <div class="header-title"><h2>اختر خطة الاستثمار المناسبة</h2></div>
+    <div class="header-title"><h2>باقات الاستثمار المتاحة</h2></div>
 
     <div class="plans-grid" id="plans-container">
         </div>
@@ -52,7 +49,7 @@
 
     <script src="auth.js"></script>
     <script>
-        // تعريف الـ 8 خطط مع أسعارها وأرباحها (2% يومياً)
+        // تعريف الـ 8 خطط (VIP 1 إلى VIP 8)
         const plans = [
             { id: 1, price: 100, profit: 2 },
             { id: 2, price: 200, profit: 4 },
@@ -80,29 +77,38 @@
             const { data: { user } } = await _supabase.auth.getUser();
             if (!user) return window.location.href = 'auth.html';
 
-            // 1. جلب الرصيد للتأكد
-            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            // 1. فحص الرصيد من جدول wallets
+            const { data: wallet, error: walletErr } = await _supabase
+                .from('wallets')
+                .select('balance')
+                .eq('user_id', user.id)
+                .single();
 
-            if (!wallet || wallet.balance < price) {
-                return alert("⚠️ رصيدك الحالي غير كافٍ. يرجى شحن الحساب أولاً.");
+            if (walletErr || wallet.balance < price) {
+                return alert("⚠️ رصيدك غير كافٍ. يرجى الشحن أولاً.");
             }
 
-            // 2. خصم المبلغ وتحديث قاعدة البيانات
-            if (confirm(`هل أنت متأكد من تفعيل باقة ${planName} بمبلغ $${price}؟`)) {
+            if (confirm(`هل تريد تفعيل ${planName} بمبلغ $${price}؟`)) {
+                // 2. خصم المبلغ من الرصيد
                 const newBalance = wallet.balance - price;
                 await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', user.id);
 
-                // 3. تفعيل الاستثمار في الجدول
-                await _supabase.from('investments').upsert({
+                // 3. إضافة الاستثمار بالأعمدة المطابقة لصورك
+                const { error: invError } = await _supabase.from('investments').upsert({
                     user_id: user.id,
-                    invested_amount: price,
-                    daily_profit: dailyProfit,
-                    status: 'active',
-                    plan_name: planName
+                    plan_amount: price,    // العمود الموجود في صورك
+                    daily_profit: dailyProfit, // العمود الموجود في صورك
+                    status: 'active',      // لضمان عمل صفحة المهام فوراً
+                    plan_name: planName,
+                    start_date: new Date().toISOString()
                 });
 
-                alert(`✅ مبروك! تم تفعيل ${planName} بنجاح.`);
-                window.location.href = 'tasks.html'; // الانتقال لصفحة المهام
+                if (!invError) {
+                    alert(`✅ تم تفعيل ${planName} بنجاح!`);
+                    window.location.href = 'tasks.html';
+                } else {
+                    alert("حدث خطأ أثناء التفعيل.");
+                }
             }
         }
 
