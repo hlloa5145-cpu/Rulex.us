@@ -3,64 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ROLEX - إيداع</title>
+    <title>شحن رصيد - ROLEX</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --silver-bg: #f8fafc; --white: #ffffff; --sky-blue: #0ea5e9; --dark-blue: #1e293b; --silver-border: #e2e8f0; }
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-        body { background-color: var(--silver-bg); color: var(--dark-blue); direction: rtl; padding-bottom: 90px; }
-        .header { background: var(--white); padding: 25px; text-align: center; border-bottom: 1px solid var(--silver-border); }
-        .header h2 { color: var(--sky-blue); }
-        .deposit-card { background: var(--white); margin: 20px; padding: 25px; border-radius: 25px; border: 1px solid var(--silver-border); }
-        .wallet-box { background: #f0f9ff; padding: 15px; border-radius: 15px; border: 1px dashed var(--sky-blue); margin: 15px 0; text-align: center; }
-        .wallet-box span { font-weight: bold; font-size: 0.9rem; word-break: break-all; color: var(--dark-blue); }
-        .copy-btn { background: var(--sky-blue); color: white; border: none; padding: 5px 10px; border-radius: 5px; margin-top: 10px; cursor: pointer; }
-        .input-group { margin-bottom: 20px; }
-        .input-group label { display: block; margin-bottom: 8px; font-weight: 600; }
-        .input-group input { width: 100%; padding: 12px; border: 1px solid var(--silver-border); border-radius: 10px; }
-        .btn-submit { width: 100%; padding: 15px; background: var(--sky-blue); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--white); display: flex; justify-content: space-around; padding: 12px; border-top: 1px solid var(--silver-border); }
-        .nav-item { text-decoration: none; color: #94a3b8; display: flex; flex-direction: column; align-items: center; font-size: 0.75rem; }
-        .nav-item.active { color: var(--sky-blue); }
+        body { font-family: sans-serif; background: #f8fafc; padding: 20px; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; }
+        .btn-deposit { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
-    <header class="header"><h2>إيداع USDT</h2></header>
-    <main>
-        <div class="deposit-card">
-            <p style="text-align: center; font-size: 0.9rem; color: #64748b;">قم بتحويل المبلغ إلى العنوان التالي (TRC20):</p>
-            <div class="wallet-box">
-                <span id="addr">TA3uvkYmFmWhJ5DePkgWN8y1rVt6sxbpZB</span><br>
-                <button class="copy-btn" onclick="copyAddr()">نسخ العنوان</button>
-            </div>
-            <form id="deposit-form">
-                <div class="input-group">
-                    <label>المبلغ المودع ($)</label>
-                    <input type="number" id="dep-amount" placeholder="مثلاً: 50" required>
-                </div>
-                <div class="input-group">
-                    <label>إثبات التحويل (صورة)</label>
-                    <input type="file" id="dep-image" accept="image/*" required>
-                </div>
-                <button type="submit" class="btn-submit">إرسال الطلب للمراجعة</button>
-            </form>
-        </div>
-    </main>
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item active"><i class="fa-solid fa-house"></i><span>الرئيسية</span></a>
-        <a href="team.html" class="nav-item"><i class="fa-solid fa-users"></i><span>الفريق</span></a>
-        <a href="tasks.html" class="nav-item"><i class="fa-solid fa-list-check"></i><span>المهام</span></a>
-        <a href="profile.html" class="nav-item"><i class="fa-solid fa-user"></i><span>الملف</span></a>
-    </nav>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <div class="card">
+        <h2>شحن رصيد (Deposit)</h2>
+        <p>أدخل المبلغ الذي قمت بتحويله:</p>
+        <input type="number" id="deposit-amount" placeholder="المبلغ بالدولار $">
+        <button class="btn-deposit" onclick="handleDeposit()">تأكيد الشحن</button>
+    </div>
+
+    <script src="auth.js"></script>
     <script>
-        // كود فحص الجلسة لمنع الخروج
-        const supabaseUrl = 'https://tlfwdjpmkgngigwaslqe.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsZndkanBta2duZ2lnd2FzbHFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU0MTYyODUsImV4cCI6MjA5MDk5MjI4NX0.pRnfH1eK-4CF3D7KMCWJaBaqvCesURQXMOt9J0rKcoU';
-        const _supabase = supabase.createClient(supabaseUrl, supabaseKey);
-        async function check() { const { data: { session } } = await _supabase.auth.getSession(); if (!session) window.location.href = 'auth.html'; }
-        function copyAddr() { navigator.clipboard.writeText(document.getElementById('addr').innerText); alert("تم النسخ!"); }
-        check();
+        async function handleDeposit() {
+            const amount = parseFloat(document.getElementById('deposit-amount').value);
+            const { data: { user } } = await _supabase.auth.getUser();
+
+            if (!amount || amount <= 0) return alert("يرجى إدخال مبلغ صحيح");
+
+            // إرسال الطلب لجدول transactions ليظهر في الإدارة
+            const { error } = await _supabase.from('transactions').insert([
+                { user_id: user.id, amount: amount, type: 'deposit', status: 'pending' }
+            ]);
+
+            if (!error) {
+                alert("تم إرسال الطلب للإدارة بنجاح ✅");
+                window.location.href = 'index.html';
+            } else {
+                alert("خطأ في الإرسال: " + error.message);
+            }
+        }
     </script>
 </body>
 </html>
