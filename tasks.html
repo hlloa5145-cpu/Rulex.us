@@ -7,29 +7,45 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         body { background: #f8fafc; font-family: sans-serif; text-align: center; padding: 20px; padding-bottom: 80px; }
-        .timer-box { font-size: 2.2rem; font-weight: bold; color: #0ea5e9; background: white; padding: 30px; border-radius: 25px; margin: 20px auto; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 2px solid #e0f2fe; }
-        .btn-claim { width: 100%; max-width: 320px; padding: 18px; border-radius: 15px; border: none; background: #0ea5e9; color: white; font-weight: bold; cursor: pointer; font-size: 1.2rem; transition: 0.3s; }
-        .disabled { background: #cbd5e1 !important; cursor: not-allowed; opacity: 0.7; }
-        .info-text { color: #64748b; font-size: 0.9rem; margin-top: 10px; }
-
-        /* القائمة السفلية */
+        .task-card { background: white; padding: 20px; border-radius: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+        .task-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .btn-claim { width: 100%; padding: 12px; border-radius: 12px; border: none; background: #0ea5e9; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-claim.disabled { background: #cbd5e1; cursor: not-allowed; }
+        .time-tag { font-size: 0.8rem; background: #f1f5f9; padding: 4px 10px; border-radius: 20px; color: #64748b; }
         .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
         .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
         .nav a.active { color: #0ea5e9; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div style="margin-top: 40px;">
-        <i class="fa-solid fa-circle-check" style="font-size: 3rem; color: #22c55e;"></i>
-        <h2>استلام الأرباح اليومية</h2>
-        <p class="info-text" id="plan-info">جاري التحقق من خطة الاستثمار...</p>
-    </div>
+    <h2>مهام اليوم</h2>
+    <p id="plan-status">جاري فحص الاستثمار...</p>
 
-    <div class="timer-box" id="timer">00:00:00</div>
-    
-    <button id="claim-btn" class="btn-claim disabled" onclick="claimReward()" disabled>
-        <i class="fa-solid fa-hand-holding-dollar"></i> استلام الأرباح
-    </button>
+    <div id="tasks-list">
+        <div class="task-card">
+            <div class="task-info">
+                <span>المهمة الأولى</span>
+                <span class="time-tag">الساعة 01:00</span>
+            </div>
+            <button id="btn-1" class="btn-claim disabled" onclick="processClaim(1)" disabled>جمع الأرباح</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-info">
+                <span>المهمة الثانية</span>
+                <span class="time-tag">الساعة 04:00</span>
+            </div>
+            <button id="btn-4" class="btn-claim disabled" onclick="processClaim(4)" disabled>جمع الأرباح</button>
+        </div>
+
+        <div class="task-card">
+            <div class="task-info">
+                <span>المهمة الثالثة</span>
+                <span class="time-tag">الساعة 08:00</span>
+            </div>
+            <button id="btn-8" class="btn-claim disabled" onclick="processClaim(8)" disabled>جمع الأرباح</button>
+        </div>
+    </div>
 
     <nav class="nav">
         <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
@@ -41,101 +57,70 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <script src="auth.js"></script>
     <script>
-        let currentDailyProfit = 0;
+        let dailyProfitPerTask = 0;
 
-        async function checkStatus() {
+        async function initTasks() {
             const { data: { user } } = await _supabase.auth.getUser();
             if(!user) return window.location.href = 'auth.html';
 
-            // 1. جلب الاستثمار (تعديل أسماء الأعمدة لتطابق صورك)
-            const { data: inv, error: invErr } = await _supabase
-                .from('investments')
-                .select('*')
-                .eq('user_id', user.id)
-                .eq('status', 'active') // لازم يكون نشط
-                .order('created_at', { ascending: false })
-                .limit(1)
-                .single();
+            // 1. فحص الاستثمار النشط
+            const { data: inv } = await _supabase.from('investments')
+                .select('*').eq('user_id', user.id).eq('status', 'active').single();
 
-            if (invErr || !inv) {
-                document.getElementById('timer').innerText = "لا يوجد استثمار";
-                document.getElementById('plan-info').innerText = "يرجى تفعيل باقة VIP أولاً";
+            if(!inv) {
+                document.getElementById('plan-status').innerText = "لا يوجد خطة نشطة";
                 return;
             }
 
-            // تخزين الربح اليومي المسجل في الجدول
-            currentDailyProfit = inv.daily_profit || (inv.plan_amount * 0.02);
-            document.getElementById('plan-info').innerText = `خطة ${inv.plan_name || 'VIP'} نشطة - ربحك: $${currentDailyProfit}`;
+            // تقسيم الربح اليومي على 3 مهام
+            dailyProfitPerTask = (inv.daily_profit || 0) / 3;
+            document.getElementById('plan-status').innerText = `خطة ${inv.plan_name} نشطة`;
 
-            // 2. جلب آخر موعد استلام
-            const { data: task } = await _supabase.from('daily_tasks').select('*').eq('user_id', user.id).single();
+            // 2. فحص المهام التي تم جمعها اليوم
+            const today = new Date().toISOString().split('T')[0];
+            const { data: claims } = await _supabase.from('daily_tasks')
+                .select('task_id').eq('user_id', user.id).eq('claim_date', today);
 
-            if (!task) {
-                // إذا لم يستلم أبداً، نفتح الزر فوراً
-                enableClaimButton();
-            } else {
-                const lastClaim = new Date(task.last_claim);
-                const now = new Date();
-                const diffMs = now - lastClaim;
-                const diffHours = diffMs / (1000 * 60 * 60);
+            const claimedIds = claims.map(c => c.task_id);
+            const currentHour = new Date().getHours();
 
-                if (diffHours >= 24) {
-                    enableClaimButton();
-                } else {
-                    startTimer(24 - diffHours);
-                }
+            // 3. تفعيل الأزرار بناءً على الوقت
+            checkAndEnable(1, currentHour, claimedIds, "btn-1");
+            checkAndEnable(4, currentHour, claimedIds, "btn-4");
+            checkAndEnable(8, currentHour, claimedIds, "btn-8");
+        }
+
+        function checkAndEnable(targetHour, currentHour, claimedIds, btnId) {
+            const btn = document.getElementById(btnId);
+            if (claimedIds.includes(targetHour)) {
+                btn.innerText = "تم الجمع بنجاح ✅";
+                btn.classList.add('disabled');
+            } else if (currentHour >= targetHour) {
+                btn.classList.remove('disabled');
+                btn.disabled = false;
             }
         }
 
-        function enableClaimButton() {
-            const btn = document.getElementById('claim-btn');
-            btn.classList.remove('disabled');
-            btn.disabled = false;
-            document.getElementById('timer').innerText = "جاهز الآن!";
-            document.getElementById('timer').style.color = "#22c55e";
-        }
-
-        async function claimReward() {
+        async function processClaim(taskId) {
             const { data: { user } } = await _supabase.auth.getUser();
-            
-            // جلب الرصيد الحالي
+            const today = new Date().toISOString().split('T')[0];
+
+            // إضافة سجل الجمع لمنع التكرار
+            await _supabase.from('daily_tasks').insert({
+                user_id: user.id,
+                task_id: taskId,
+                claim_date: today
+            });
+
+            // إضافة المال للمحفظة
             const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            await _supabase.from('wallets').update({ balance: wallet.balance + dailyProfitPerTask }).eq('user_id', user.id);
 
-            // تحديث الوقت (Upsert عشان إذا ما في سطر يسوي واحد جديد)
-            await _supabase.from('daily_tasks').upsert({ 
-                user_id: user.id, 
-                last_claim: new Date().toISOString() 
-            }, { onConflict: 'user_id' });
-
-            // إضافة الأرباح للمحفظة
-            const newBalance = (wallet.balance || 0) + currentDailyProfit;
-            await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', user.id);
-
-            alert(`✅ مبروك! تم إضافة $${currentDailyProfit} إلى رصيدك.`);
+            alert(`✅ تم جمع $${dailyProfitPerTask.toFixed(2)}`);
             location.reload();
         }
 
-        function startTimer(hours) {
-            let totalSeconds = Math.floor(hours * 3600);
-            const timerDisplay = document.getElementById('timer');
-            
-            const countdown = setInterval(() => {
-                if (totalSeconds <= 0) {
-                    clearInterval(countdown);
-                    location.reload();
-                    return;
-                }
-                
-                let h = Math.floor(totalSeconds / 3600).toString().padStart(2, '0');
-                let m = Math.floor((totalSeconds % 3600) / 60).toString().padStart(2, '0');
-                let s = (totalSeconds % 60).toString().padStart(2, '0');
-                
-                timerDisplay.innerText = `${h}:${m}:${s}`;
-                totalSeconds--;
-            }, 1000);
-        }
-
-        window.onload = checkStatus;
+        window.onload = initTasks;
     </script>
 </body>
 </html>
