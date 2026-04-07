@@ -3,144 +3,128 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم المدير - ROLEX</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>لوحة الإدارة العليا - ROLEX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --blue: #0ea5e9; --dark: #1e293b; --green: #22c55e; --red: #ef4444; }
-        body { background: #f1f5f9; font-family: sans-serif; margin: 0; padding: 20px; }
-        .admin-container { max-width: 1000px; margin: auto; }
-        .header { background: var(--dark); color: white; padding: 20px; border-radius: 15px; text-align: center; margin-bottom: 20px; }
-        
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h3 { border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px; color: var(--dark); }
-
-        /* تنسيق المدخلات */
-        input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .btn-blue { background: var(--blue); color: white; }
-        .btn-green { background: var(--green); color: white; margin-top: 5px; }
-        .btn-red { background: var(--red); color: white; margin-top: 5px; }
-
-        /* تنسيق الجداول */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.8rem; }
-        th, td { padding: 10px; border: 1px solid #eee; text-align: center; }
+        :root { --blue: #0ea5e9; --red: #ef4444; --green: #10b981; }
+        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
+        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        h2 { color: #1e293b; border-bottom: 2px solid var(--blue); padding-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
         th { background: #f8fafc; }
-        .id-link { color: var(--blue); text-decoration: none; font-weight: bold; }
-        
-        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+        .btn { padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-approve { background: var(--green); }
+        .btn-reject { background: var(--red); }
+        .btn-ban { background: #334155; }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; }
     </style>
 </head>
 <body>
 
-<div class="admin-container">
-    <div class="header">
+    <div class="card">
         <h1><i class="fa-solid fa-gauge"></i> لوحة الإدارة العليا</h1>
-        <p>نظام ROLEX الموحد</p>
+        <p>نظام ROLEX الموحد للتحكم الكامل</p>
     </div>
 
-    <div class="grid">
-        <div class="card">
-            <h3><i class="fa-solid fa-money-bill-transfer"></i> شحن رصيد (Deposit)</h3>
-            <label>الرقم الطويل للمستخدم (UID):</label>
-            <input type="text" id="target-uid" placeholder="أدخل UID المستخدم">
-            <label>المبلغ المراد إضافته ($):</label>
-            <input type="number" id="deposit-amount" placeholder="مثلاً: 100">
-            <button class="btn-blue" onclick="adminAddBalance()">إضافة الرصيد الآن</button>
-        </div>
-
-        <div class="card">
-            <h3><i class="fa-solid fa-id-card"></i> طلبات التوثيق المعلقة</h3>
-            <div id="kyc-list">جاري التحميل...</div>
+    <div class="card">
+        <h2>إدارة أرصدة المستخدمين</h2>
+        <input type="text" id="target-uid" placeholder="رقم المحفظة (UID)">
+        <input type="number" id="points-amount" placeholder="المبلغ ($)">
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <button class="btn btn-approve" onclick="adjustBalance('add')" style="flex: 1;">إضافة رصيد (+)</button>
+            <button class="btn btn-reject" onclick="adjustBalance('sub')" style="flex: 1;">خصم رصيد (-)</button>
         </div>
     </div>
 
-    <div class="card" style="margin-top: 20px;">
-        <h3><i class="fa-solid fa-chart-pie"></i> مراقبة الاستثمارات النشطة</h3>
-        <div id="investments-list">جاري تحميل البيانات...</div>
+    <div class="card">
+        <h2>طلبات السحب والشحن المعلقة</h2>
+        <table id="requests-table">
+            <thead>
+                <tr>
+                    <th>المستخدم</th>
+                    <th>النوع</th>
+                    <th>المبلغ</th>
+                    <th>الحالة</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="requests-body">
+                </tbody>
+        </table>
     </div>
-</div>
 
-<script src="auth.js"></script>
-<script>
-    // --- 1. وظيفة شحن الرصيد ---
-    async function adminAddBalance() {
-        const uid = document.getElementById('target-uid').value;
-        const amount = parseFloat(document.getElementById('deposit-amount').value);
+    <div class="card">
+        <h2>إدارة الحظر (Ban System)</h2>
+        <table id="users-table">
+            <thead>
+                <tr>
+                    <th>UID</th>
+                    <th>الحالة</th>
+                    <th>إجراء</th>
+                </tr>
+            </thead>
+            <tbody id="users-body">
+                </tbody>
+        </table>
+    </div>
 
-        if (!uid || !amount) return alert("يرجى ملء جميع الخانات");
+    <script src="auth.js"></script>
+    <script>
+        async function loadAdminData() {
+            // 1. جلب طلبات السحب والشحن من جدول transactions
+            const { data: trans } = await _supabase.from('transactions').select('*').eq('status', 'pending');
+            const reqBody = document.getElementById('requests-body');
+            reqBody.innerHTML = trans.map(t => `
+                <tr>
+                    <td>${t.user_id.substring(0,8)}...</td>
+                    <td>${t.type === 'deposit' ? 'شحن' : 'سحب'}</td>
+                    <td>$${t.amount}</td>
+                    <td style="color: orange;">معلق</td>
+                    <td>
+                        <button class="btn btn-approve" onclick="updateStatus('${t.id}', 'approved', '${t.user_id}', ${t.amount}, '${t.type}')">موافقة</button>
+                        <button class="btn btn-reject" onclick="updateStatus('${t.id}', 'rejected')">رفض</button>
+                    </td>
+                </tr>
+            `).join('');
 
-        // جلب الرصيد الحالي
-        const { data: wallet, error: fetchErr } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
-        
-        if (fetchErr) return alert("لم يتم العثور على المستخدم!");
-
-        const newBalance = (wallet.balance || 0) + amount;
-
-        // تحديث الرصيد
-        const { error: updateErr } = await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', uid);
-
-        if (!updateErr) {
-            alert(`✅ تم إضافة $${amount} بنجاح. الرصيد الجديد: $${newBalance}`);
-            location.reload();
-        } else {
-            alert("فشل تحديث الرصيد");
+            // 2. جلب المستخدمين وحالة الحظر من جدول wallets
+            const { data: users } = await _supabase.from('wallets').select('user_id, is_banned');
+            const userBody = document.getElementById('users-body');
+            userBody.innerHTML = users.map(u => `
+                <tr>
+                    <td>${u.user_id}</td>
+                    <td>${u.is_banned ? '<span style="color:red">محظور</span>' : 'نشط'}</td>
+                    <td>
+                        <button class="btn btn-ban" onclick="toggleBan('${u.user_id}', ${u.is_banned})">
+                            ${u.is_banned ? 'فك الحظر' : 'حظر المستخدم'}
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
         }
-    }
 
-    // --- 2. وظيفة جلب طلبات الهوية ---
-    async function fetchKYC() {
-        const { data: requests } = await _supabase.from('wallets').select('*').eq('kyc_status', 'pending');
-        const container = document.getElementById('kyc-list');
+        // دالة إضافة أو خصم الرصيد
+        async function adjustBalance(action) {
+            const uid = document.getElementById('target-uid').value;
+            const amount = parseFloat(document.getElementById('points-amount').value);
+            
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
+            const newBalance = action === 'add' ? wallet.balance + amount : wallet.balance - amount;
 
-        if (!requests || requests.length === 0) {
-            container.innerHTML = "<p style='text-align:center;'>لا يوجد طلبات معلقة</p>";
-            return;
+            const { error } = await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', uid);
+            if(!error) alert("تم تحديث الرصيد بنجاح ✅");
+            loadAdminData();
         }
 
-        let html = `<table><tr><th>المستخدم</th><th>الهوية</th><th>إجراء</th></tr>`;
-        requests.forEach(r => {
-            html += `<tr>
-                <td style="font-size:10px;">${r.user_id.substring(0,8)}...</td>
-                <td><a href="${r.id_card_url}" target="_blank" class="id-link">عرض</a></td>
-                <td>
-                    <button class="btn-green" style="padding:5px;" onclick="setKYCStatus('${r.user_id}', 'verified')">✅</button>
-                    <button class="btn-red" style="padding:5px;" onclick="setKYCStatus('${r.user_id}', 'rejected')">❌</button>
-                </td>
-            </tr>`;
-        });
-        container.innerHTML = html + "</table>";
-    }
+        // دالة الحظر وفك الحظر
+        async function toggleBan(uid, currentStatus) {
+            const { error } = await _supabase.from('wallets').update({ is_banned: !currentStatus }).eq('user_id', uid);
+            if(!error) alert("تم تغيير حالة الحظر بنجاح");
+            loadAdminData();
+        }
 
-    async function setKYCStatus(uid, status) {
-        await _supabase.from('wallets').update({ kyc_status: status }).eq('user_id', uid);
-        alert("تم تحديث حالة التوثيق");
-        fetchKYC();
-    }
-
-    // --- 3. وظيفة جلب الاستثمارات ---
-    async function fetchInvestments() {
-        const { data: invs } = await _supabase.from('investments').select('*');
-        const container = document.getElementById('investments-list');
-
-        let html = `<table><tr><th>المستخدم</th><th>المبلغ</th><th>الحالة</th><th>تاريخ البدء</th></tr>`;
-        invs.forEach(i => {
-            html += `<tr>
-                <td>${i.user_id.substring(0,8)}...</td>
-                <td style="color:var(--blue); font-weight:bold;">$${i.invested_amount}</td>
-                <td>${i.status}</td>
-                <td>${new Date(i.created_at).toLocaleDateString()}</td>
-            </tr>`;
-        });
-        container.innerHTML = html + "</table>";
-    }
-
-    window.onload = () => {
-        fetchKYC();
-        fetchInvestments();
-    };
-</script>
-
+        window.onload = loadAdminData;
+    </script>
 </body>
 </html>
