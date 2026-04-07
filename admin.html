@@ -2,129 +2,70 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة العليا - ROLEX</title>
+    <title>التحكم الكامل - ROLEX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
     <style>
-        :root { --blue: #0ea5e9; --red: #ef4444; --green: #10b981; }
-        body { font-family: sans-serif; background: #f1f5f9; padding: 20px; }
-        .card { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        h2 { color: #1e293b; border-bottom: 2px solid var(--blue); padding-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+        body { font-family: sans-serif; background: #f4f7f6; padding: 20px; }
+        .section { background: white; padding: 20px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { padding: 12px; border: 1px solid #eee; text-align: center; }
-        th { background: #f8fafc; }
-        .btn { padding: 8px 12px; border: none; border-radius: 8px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-approve { background: var(--green); }
-        .btn-reject { background: var(--red); }
-        .btn-ban { background: #334155; }
-        input { padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin: 5px; }
+        .btn { padding: 8px 15px; border: none; border-radius: 5px; cursor: pointer; color: white; }
+        .btn-green { background: #10b981; } .btn-red { background: #ef4444; }
+        img.proof { width: 50px; cursor: pointer; border-radius: 5px; }
     </style>
 </head>
 <body>
-
-    <div class="card">
-        <h1><i class="fa-solid fa-gauge"></i> لوحة الإدارة العليا</h1>
-        <p>نظام ROLEX الموحد للتحكم الكامل</p>
-    </div>
-
-    <div class="card">
-        <h2>إدارة أرصدة المستخدمين</h2>
-        <input type="text" id="target-uid" placeholder="رقم المحفظة (UID)">
-        <input type="number" id="points-amount" placeholder="المبلغ ($)">
-        <div style="display: flex; gap: 10px; margin-top: 10px;">
-            <button class="btn btn-approve" onclick="adjustBalance('add')" style="flex: 1;">إضافة رصيد (+)</button>
-            <button class="btn btn-reject" onclick="adjustBalance('sub')" style="flex: 1;">خصم رصيد (-)</button>
-        </div>
-    </div>
-
-    <div class="card">
-        <h2>طلبات السحب والشحن المعلقة</h2>
-        <table id="requests-table">
+    <div class="section">
+        <h2>إدارة طلبات الشحن والسحب</h2>
+        <table id="trans-table">
             <thead>
                 <tr>
                     <th>المستخدم</th>
                     <th>النوع</th>
                     <th>المبلغ</th>
-                    <th>الحالة</th>
+                    <th>الإثبات</th>
                     <th>إجراء</th>
                 </tr>
             </thead>
-            <tbody id="requests-body">
-                </tbody>
-        </table>
-    </div>
-
-    <div class="card">
-        <h2>إدارة الحظر (Ban System)</h2>
-        <table id="users-table">
-            <thead>
-                <tr>
-                    <th>UID</th>
-                    <th>الحالة</th>
-                    <th>إجراء</th>
-                </tr>
-            </thead>
-            <tbody id="users-body">
-                </tbody>
+            <tbody id="trans-body"></tbody>
         </table>
     </div>
 
     <script src="auth.js"></script>
     <script>
-        async function loadAdminData() {
-            // 1. جلب طلبات السحب والشحن من جدول transactions
-            const { data: trans } = await _supabase.from('transactions').select('*').eq('status', 'pending');
-            const reqBody = document.getElementById('requests-body');
-            reqBody.innerHTML = trans.map(t => `
+        async function loadRequests() {
+            const { data: list } = await _supabase.from('transactions').select('*').eq('status', 'pending');
+            const tbody = document.getElementById('trans-body');
+            tbody.innerHTML = list.map(item => `
                 <tr>
-                    <td>${t.user_id.substring(0,8)}...</td>
-                    <td>${t.type === 'deposit' ? 'شحن' : 'سحب'}</td>
-                    <td>$${t.amount}</td>
-                    <td style="color: orange;">معلق</td>
+                    <td>${item.user_id.substring(0,8)}...</td>
+                    <td>${item.type === 'deposit' ? 'شحن' : 'سحب'}</td>
+                    <td>$${item.amount}</td>
+                    <td>${item.image_url ? `<img src="${item.image_url}" class="proof" onclick="window.open(this.src)">` : 'لا يوجد'}</td>
                     <td>
-                        <button class="btn btn-approve" onclick="updateStatus('${t.id}', 'approved', '${t.user_id}', ${t.amount}, '${t.type}')">موافقة</button>
-                        <button class="btn btn-reject" onclick="updateStatus('${t.id}', 'rejected')">رفض</button>
-                    </td>
-                </tr>
-            `).join('');
-
-            // 2. جلب المستخدمين وحالة الحظر من جدول wallets
-            const { data: users } = await _supabase.from('wallets').select('user_id, is_banned');
-            const userBody = document.getElementById('users-body');
-            userBody.innerHTML = users.map(u => `
-                <tr>
-                    <td>${u.user_id}</td>
-                    <td>${u.is_banned ? '<span style="color:red">محظور</span>' : 'نشط'}</td>
-                    <td>
-                        <button class="btn btn-ban" onclick="toggleBan('${u.user_id}', ${u.is_banned})">
-                            ${u.is_banned ? 'فك الحظر' : 'حظر المستخدم'}
-                        </button>
+                        <button class="btn btn-green" onclick="approve('${item.id}', '${item.user_id}', ${item.amount}, '${item.type}')">موافقة</button>
+                        <button class="btn btn-red" onclick="reject('${item.id}')">رفض</button>
                     </td>
                 </tr>
             `).join('');
         }
 
-        // دالة إضافة أو خصم الرصيد
-        async function adjustBalance(action) {
-            const uid = document.getElementById('target-uid').value;
-            const amount = parseFloat(document.getElementById('points-amount').value);
-            
-            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
-            const newBalance = action === 'add' ? wallet.balance + amount : wallet.balance - amount;
-
-            const { error } = await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', uid);
-            if(!error) alert("تم تحديث الرصيد بنجاح ✅");
-            loadAdminData();
+        async function approve(tid, uid, amt, type) {
+            // 1. تحديث الحالة
+            await _supabase.from('transactions').update({ status: 'approved' }).eq('id', tid);
+            // 2. إذا كان شحن، نزيد الرصيد في wallets
+            if (type === 'deposit') {
+                const { data: w } = await _supabase.from('wallets').select('balance').eq('user_id', uid).single();
+                await _supabase.from('wallets').update({ balance: w.balance + amt }).eq('user_id', uid);
+            }
+            alert("تمت العملية بنجاح ✅"); loadRequests();
         }
 
-        // دالة الحظر وفك الحظر
-        async function toggleBan(uid, currentStatus) {
-            const { error } = await _supabase.from('wallets').update({ is_banned: !currentStatus }).eq('user_id', uid);
-            if(!error) alert("تم تغيير حالة الحظر بنجاح");
-            loadAdminData();
+        async function reject(tid) {
+            await _supabase.from('transactions').update({ status: 'rejected' }).eq('id', tid);
+            loadRequests();
         }
-
-        window.onload = loadAdminData;
+        window.onload = loadRequests;
     </script>
 </body>
 </html>
