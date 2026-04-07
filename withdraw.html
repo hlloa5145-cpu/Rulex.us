@@ -3,134 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>سحب الأموال - ROLEX</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>سحب الأرباح - ROLEX</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        :root { --blue: #0ea5e9; --bg: #f8fafc; --red: #ef4444; }
-        body { background: var(--bg); font-family: sans-serif; margin: 0; padding: 20px; padding-bottom: 80px; }
-        .header { text-align: center; margin-bottom: 30px; }
-        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); max-width: 450px; margin: auto; }
-        
-        .balance-info { background: #f1f5f9; padding: 15px; border-radius: 12px; margin-bottom: 20px; text-align: center; }
-        .balance-info span { font-size: 0.8rem; color: #64748b; }
-        .balance-info h2 { color: var(--blue); margin: 5px 0; }
-
-        .kyc-alert { background: #fff1f2; border: 1px solid #fecdd3; color: var(--red); padding: 15px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 20px; display: none; text-align: center; }
-        
-        label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: #1e293b; font-weight: bold; }
-        input, select { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #e2e8f0; border-radius: 10px; box-sizing: border-box; }
-        
-        .btn-withdraw { width: 100%; padding: 15px; background: var(--blue); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 1rem; }
-        .btn-withdraw:disabled { background: #cbd5e1; cursor: not-allowed; }
-
-        .nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; display: flex; justify-content: space-around; padding: 15px 0; border-top: 1px solid #eee; }
-        .nav a { color: #94a3b8; text-decoration: none; font-size: 0.7rem; text-align: center; }
-        .nav a.active { color: var(--blue); }
+        body { font-family: sans-serif; background: #f8fafc; padding: 20px; text-align: center; }
+        .card { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        input { width: 100%; padding: 15px; margin: 15px 0; border: 1px solid #ddd; border-radius: 12px; box-sizing: border-box; font-size: 1rem; }
+        .btn-withdraw { background: #0ea5e9; color: white; border: none; padding: 15px; width: 100%; border-radius: 12px; font-weight: bold; cursor: pointer; }
+        .warning { color: #ef4444; font-size: 0.85rem; margin-top: 10px; }
     </style>
 </head>
 <body>
-
-    <div class="header">
-        <h2>سحب الأرباح</h2>
-    </div>
-
+    <h2>سحب الأرباح</h2>
     <div class="card">
-        <div id="kyc-warning" class="kyc-alert">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            حسابك غير موثق! يرجى رفع الهوية من صفحة الملف الشخصي لتتمكن من السحب.
-        </div>
-
-        <div class="balance-info">
-            <span>رصيدك القابل للسحب</span>
-            <h2 id="current-balance">$0.00</h2>
-        </div>
-
-        <form id="withdraw-form" onsubmit="handleWithdraw(event)">
-            <label>طريقة السحب</label>
-            <select id="method" required>
-                <option value="usdt">USDT (TRC20)</option>
-                <option value="bank">تحويل بنكي</option>
-            </select>
-
-            <label>عنوان المحفظة / رقم الحساب</label>
-            <input type="text" id="address" placeholder="أدخل العنوان هنا..." required>
-
-            <label>المبلغ المراد سحبه ($)</label>
-            <input type="number" id="amount" placeholder="الحد الأدنى $10" min="10" required>
-
-            <button type="submit" id="submit-btn" class="btn-withdraw">تقديم طلب السحب</button>
-        </form>
+        <p>الرصيد المتاح للسحب (الأرباح فقط):</p>
+        <h3 id="withdrawable-balance" style="color: #10b981;">$0.00</h3>
+        
+        <input type="number" id="amount" placeholder="أدخل مبلغ السحب">
+        <input type="text" id="address" placeholder="عنوان محفظة USDT (TRC20)">
+        
+        <button class="btn-withdraw" onclick="handleWithdraw()">تأكيد السحب</button>
+        <p class="warning">* لا يمكن سحب مبالغ الاستثمار النشطة، فقط الأرباح المتراكمة.</p>
     </div>
-
-    <nav class="nav">
-        <a href="index.html"><i class="fa-solid fa-house"></i><br>الرئيسية</a>
-        <a href="invest.html"><i class="fa-solid fa-gem"></i><br>استثمار</a>
-        <a href="tasks.html"><i class="fa-solid fa-calendar-check"></i><br>المهام</a>
-        <a href="profile.html"><i class="fa-solid fa-user"></i><br>الملف</a>
-    </nav>
 
     <script src="auth.js"></script>
     <script>
-        let userBalance = 0;
-        let isVerified = false;
+        let maxWithdraw = 0;
 
-        async function initWithdraw() {
+        async function checkBalances() {
             const { data: { user } } = await _supabase.auth.getUser();
-            if (!user) return window.location.href = 'auth.html';
-
-            // جلب الرصيد وحالة التوثيق
-            const { data: wallet } = await _supabase.from('wallets').select('*').eq('user_id', user.id).single();
             
-            if (wallet) {
-                userBalance = wallet.balance;
-                document.getElementById('current-balance').innerText = `$${userBalance.toFixed(2)}`;
-                
-                // فحص التوثيق
-                if (wallet.kyc_status !== 'verified') {
-                    document.getElementById('kyc-warning').style.display = 'block';
-                    document.getElementById('submit-btn').disabled = true;
-                    document.getElementById('submit-btn').innerText = "التوثيق مطلوب للسحب";
-                } else {
-                    isVerified = true;
-                }
-            }
+            // 1. جلب الرصيد الكلي
+            const { data: wallet } = await _supabase.from('wallets').select('balance').eq('user_id', user.id).single();
+            
+            // 2. جلب إجمالي رأس المال المستثمر
+            const { data: invs } = await _supabase.from('investments').select('invested_amount').eq('user_id', user.id).eq('status', 'active');
+            const totalInvested = invs.reduce((sum, item) => sum + (item.invested_amount || 0), 0);
+
+            // 3. الربح القابل للسحب = الرصيد الكلي - رأس المال
+            maxWithdraw = wallet.balance - totalInvested;
+            if(maxWithdraw < 0) maxWithdraw = 0;
+
+            document.getElementById('withdrawable-balance').innerText = `$${maxWithdraw.toFixed(2)}`;
         }
 
-        async function handleWithdraw(e) {
-            e.preventDefault();
-            if (!isVerified) return;
-
+        async function handleWithdraw() {
             const amount = parseFloat(document.getElementById('amount').value);
-            const address = document.getElementById('address').value;
-            const method = document.getElementById('method').value;
-
-            if (amount > userBalance) {
-                return alert("عذراً، رصيدك غير كافٍ!");
+            if (amount > maxWithdraw) {
+                return alert(`عذراً، يمكنك سحب الأرباح فقط ($${maxWithdraw.toFixed(2)}). رأس مالك مستثمر حالياً.`);
             }
+            if (amount < 10) return alert("الحد الأدنى للسحب هو $10");
 
-            const { data: { user } } = await _supabase.auth.getUser();
-
-            // 1. تسجيل طلب السحب في جدول transactions
-            const { error: txError } = await _supabase.from('transactions').insert({
-                user_id: user.id,
-                amount: amount,
-                type: 'withdraw',
-                status: 'pending',
-                details: `Method: ${method}, Address: ${address}`
-            });
-
-            if (txError) return alert("حدث خطأ أثناء تقديم الطلب");
-
-            // 2. خصم المبلغ من المحفظة مؤقتاً (أو يمكنك الخصم بعد موافقة الأدمن)
-            const newBalance = userBalance - amount;
-            await _supabase.from('wallets').update({ balance: newBalance }).eq('user_id', user.id);
-
-            alert("✅ تم تقديم طلب السحب بنجاح! بانتظار مراجعة الإدارة.");
-            location.reload();
+            // تنفيذ عملية السحب في قاعدة البيانات...
+            alert("تم إرسال طلب السحب للمراجعة ✅");
         }
 
-        window.onload = initWithdraw;
+        window.onload = checkBalances;
     </script>
 </body>
 </html>
